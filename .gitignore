@@ -5,3 +5,8 @@
 /CapaIntercie/dist/
 /CapaSQL/dist/
 /CapaSQL/build/
+/InterfaceLayer/build/
+/InterfaceLayer/dist/
+/SQLayer/build/
+/SQLayer/dist/
+/App/dist/
