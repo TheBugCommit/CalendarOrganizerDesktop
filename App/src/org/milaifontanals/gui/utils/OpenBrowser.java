@@ -1,4 +1,4 @@
-package org.milaifontanals.utils;
+package org.milaifontanals.gui.utils;
 
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;

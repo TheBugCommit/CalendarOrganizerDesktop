@@ -17,9 +17,9 @@ public class GUI {
         try {
             dashboardFrame = new Dashboard();
         } catch (CalendarOrganizerException ex) {
+            //TODO SHOW POPUP
             Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         
         userLoginFrame.run();
     }

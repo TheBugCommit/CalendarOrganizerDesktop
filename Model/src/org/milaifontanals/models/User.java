@@ -233,7 +233,7 @@ public class User implements Cloneable {
 
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", name=" + name + ", email=" + email + ", surname1=" + surname1 + ", surname2=" + surname2 + ", locked=" + locked + ", birthDate=" + birthDate + ", phone=" + phone + ", gender=" + gender + ", role=" + role + ", nation=" + nation + '}';
+        return email + " " + name;
     }
 
     @Override

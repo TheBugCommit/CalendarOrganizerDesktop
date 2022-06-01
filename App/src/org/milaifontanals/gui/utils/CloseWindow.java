@@ -1,4 +1,4 @@
-package org.milaifontanals.utils;
+package org.milaifontanals.gui.utils;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

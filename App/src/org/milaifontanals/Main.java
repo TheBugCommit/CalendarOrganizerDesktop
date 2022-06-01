@@ -15,11 +15,13 @@ import org.milaifontanals.utils.ReadProperties;
  */
 public class Main {
     public static ICalendarOrganizer db = null;
+    public static HashMap<String, String> props = null;
+
     
     public static void main(String[] args) {
         
         try {
-            HashMap<String, String> props = checkProperties();
+            props = checkProperties();
             db = (ICalendarOrganizer) Class.forName(props.get("db_layer")).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             JOptionPane.showMessageDialog(new JFrame(), "Internal Error", "Error", JOptionPane.ERROR_MESSAGE);

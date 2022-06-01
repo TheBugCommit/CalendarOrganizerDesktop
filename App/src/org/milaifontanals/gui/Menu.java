@@ -10,8 +10,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import static javax.swing.KeyStroke.getKeyStroke;
+import org.milaifontanals.Main;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
-import org.milaifontanals.utils.OpenBrowser;
+import org.milaifontanals.gui.utils.OpenBrowser;
 import org.milaifontanals.utils.ReadProperties;
 
 /**
@@ -37,11 +38,11 @@ public class Menu {
         
         JMenuItem helpWeb = new JMenuItem("Help Web");
         helpWeb.setAccelerator(getKeyStroke(KeyEvent.VK_F2, KeyEvent.ALT_DOWN_MASK));
-        helpWeb.addActionListener(new OpenBrowser(urls.get("web_help_url"), frame));
+        helpWeb.addActionListener(new OpenBrowser(Main.props.get("web_help_url"), frame));
 
         JMenuItem website = new JMenuItem("Website");
         website.setAccelerator(getKeyStroke(KeyEvent.VK_F1, KeyEvent.ALT_DOWN_MASK));
-        website.addActionListener(new OpenBrowser(urls.get("web_url"), frame));
+        website.addActionListener(new OpenBrowser(Main.props.get("web_url"), frame));
         
         JMenuItem about = new JMenuItem("About", 'A');
         about.addActionListener((ActionEvent e) -> {
