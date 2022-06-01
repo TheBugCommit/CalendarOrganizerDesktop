@@ -1,58 +1,59 @@
 package org.milaifontanals.gui;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JButton;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
 import org.milaifontanals.persistencia.ICalendarOrganizer;
+import org.milaifontanals.utils.CloseWindow;
 
 /**
  *
  * @author Gerard Casas
  */
-public class Dashboard extends JFrame{
+public class Dashboard extends JFrame {
 
     private ICalendarOrganizer db;
-    private JPanel contentPane;
-    
-    public void run(ICalendarOrganizer db) {
+    private JPanel panel;
+
+    public void run() {
         setVisible(true);
-        this.db = db;
+    }
+    
+    public void close() {
+        dispose();
+        setVisible(false);
     }
 
-    public Dashboard() throws CalendarOrganizerException {
+    public Dashboard(ICalendarOrganizer db) throws CalendarOrganizerException {
+        
+        setDb(db);
+        
         setTitle("Calendar Organizer Admin Dashboard");
-        setJMenuBar(new Menu(this).getMenuBar());
+        setJMenuBar(new Menu(this, this.db).getMenuBar());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(450, 190, 1014, 597);
-        setResizable(false);
-        contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        setContentPane(contentPane);
-        contentPane.setLayout(null);
-        JButton btnNewButton = new JButton("Logout");
-        btnNewButton.setForeground(new Color(0, 0, 0));
-        btnNewButton.setBackground(UIManager.getColor("Button.disabledForeground"));
-        btnNewButton.setFont(new Font("Tahoma", Font.PLAIN, 39));
-        btnNewButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int a = JOptionPane.showConfirmDialog(btnNewButton, "Are you sure?");
-                // JOptionPane.setRootFrame(null);
-                if (a == JOptionPane.YES_OPTION) {
-                    dispose();
-                    UserLogin obj = new UserLogin();
-                    obj.run(db);
-                }
-            }
-        });
-        btnNewButton.setBounds(247, 118, 491, 114);
-        contentPane.add(btnNewButton);
+        setSize(1000, 720);
+        Dimension dimemsion = Toolkit.getDefaultToolkit().getScreenSize();
+        setLocation(dimemsion.width / 2 - getSize().width / 2, dimemsion.height / 2 - getSize().height / 2);
+        setResizable(true);
+        panel = new JPanel();
+        panel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(panel);
+        panel.setLayout(null);
+
+        setSearchByEmail();
+
+        addWindowListener(new CloseWindow(db));
     }
+
+    private void setDb(ICalendarOrganizer db) {
+        this.db = db;
+    }
+    
+    private void setSearchByEmail() {
+
+    }
+
 }

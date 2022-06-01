@@ -59,11 +59,6 @@ public class BDRLayer implements ICalendarOrganizer {
     }
 
     @Override
-    public User searchUser(String eMail) throws CalendarOrganizerException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public boolean checkAuth(String email, String password) throws CalendarOrganizerException {
         try {
             PreparedStatement ps = con.prepareStatement("select email, password from users where role_id = ? and email like ? and password like ?");
@@ -77,6 +72,25 @@ public class BDRLayer implements ICalendarOrganizer {
         }
     }
 
+    @Override
+    public User searchUserByEmail(String email) throws CalendarOrganizerException {
+        try{
+            PreparedStatement ps = con.prepareStatement("select * from users where lower(email) like lower(?)");
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            
+        }catch(SQLException ex){
+            throw new CalendarOrganizerException("An error occured can't search user", ex.getCause());
+        }
+        
+        return null;
+    }
+
+    @Override
+    public User searchUserByNameSurname(String nameSurname) throws CalendarOrganizerException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     @Override
     public void commit() throws CalendarOrganizerException {
         try {
@@ -98,11 +112,16 @@ public class BDRLayer implements ICalendarOrganizer {
     @Override
     public void close() throws CalendarOrganizerException {
         try {
+            System.out.println("exit db");
             con.rollback();
             con.close();
         } catch (SQLException ex) {
             throw new CalendarOrganizerException("Error en tancar la capa", ex);
         }
     }
-
+    
+    
+    protected User collectUser(ResultSet rs) throws CalendarOrganizerException{
+        return null;
+    }
 }

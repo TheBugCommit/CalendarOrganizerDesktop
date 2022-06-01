@@ -30,8 +30,8 @@ public class Main {
             System.exit(1);
         }
 
-        UserLogin ul = new UserLogin();
-        ul.run(obj);
+        UserLogin ul = new UserLogin(obj);
+        ul.run();
     }
     
     private static HashMap<String, String> checkProperties() throws CalendarOrganizerException {

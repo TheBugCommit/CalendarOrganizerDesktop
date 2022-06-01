@@ -1,16 +1,17 @@
 package org.milaifontanals.gui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import static javax.swing.KeyStroke.getKeyStroke;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
+import org.milaifontanals.persistencia.ICalendarOrganizer;
 import org.milaifontanals.utils.OpenBrowser;
 import org.milaifontanals.utils.ReadProperties;
 
@@ -22,7 +23,7 @@ public class Menu {
     
     private JMenuBar menu;
     
-    public Menu(JFrame frame) throws CalendarOrganizerException {
+    public Menu(Dashboard frame, ICalendarOrganizer db) throws CalendarOrganizerException {
         
         setMenuBar(new JMenuBar());
         
@@ -32,11 +33,6 @@ public class Menu {
         JMenu generic = new JMenu("Generic");
         generic.setMnemonic(KeyEvent.VK_G);
 
-        JMenuItem exit = new JMenuItem("Exit", 'E');
-        exit.addActionListener((ActionEvent e) -> {
-            System.exit(0);
-        });
-        exit.setAccelerator(getKeyStroke(KeyEvent.VK_F4, KeyEvent.ALT_DOWN_MASK));
 
         HashMap<String,String> urls = getWebUrls();
         
@@ -57,8 +53,22 @@ public class Menu {
                     "About me", JOptionPane.PLAIN_MESSAGE);
         });
         
+        JMenuItem logout = new JMenuItem("Log Out", 'L');
+        logout.setAccelerator(getKeyStroke(KeyEvent.VK_F4, KeyEvent.ALT_DOWN_MASK));
+        logout.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int a = JOptionPane.showConfirmDialog(frame, "Are you sure?");
+                if (a == JOptionPane.YES_OPTION) {
+                    frame.close();
+                    UserLogin ul = new UserLogin(db);
+                    ul.run();
+                    return;
+                }
+            }
+        });
+        
         generic.add(website);
-        generic.add(exit);
+        generic.add(logout);
         help.add(helpWeb);
         help.add(about);
 

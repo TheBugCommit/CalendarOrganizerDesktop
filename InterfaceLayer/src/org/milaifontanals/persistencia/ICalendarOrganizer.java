@@ -1,5 +1,6 @@
 package org.milaifontanals.persistencia;
 
+import java.sql.ResultSet;
 import org.milaifontanals.models.User;
 
 /**
@@ -8,7 +9,8 @@ import org.milaifontanals.models.User;
  */
 public interface ICalendarOrganizer {
     public void insertUser(User user) throws CalendarOrganizerException;
-    public User searchUser(String eMail) throws CalendarOrganizerException;
+    public User searchUserByEmail(String email) throws CalendarOrganizerException;
+    public User searchUserByNameSurname(String nameSurname) throws CalendarOrganizerException;
     
     public boolean checkAuth(String email, String password) throws CalendarOrganizerException;
     
