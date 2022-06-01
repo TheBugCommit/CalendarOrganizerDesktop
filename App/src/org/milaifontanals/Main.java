@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import org.milaifontanals.gui.UserLogin;
+import org.milaifontanals.gui.GUI;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
 import org.milaifontanals.persistencia.ICalendarOrganizer;
 import org.milaifontanals.utils.ReadProperties;
@@ -14,14 +14,13 @@ import org.milaifontanals.utils.ReadProperties;
  * @author Gerard Casas
  */
 public class Main {
-
+    public static ICalendarOrganizer db = null;
+    
     public static void main(String[] args) {
-
-        ICalendarOrganizer obj = null;
-
+        
         try {
             HashMap<String, String> props = checkProperties();
-            obj = (ICalendarOrganizer) Class.forName(props.get("db_layer")).newInstance();
+            db = (ICalendarOrganizer) Class.forName(props.get("db_layer")).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             JOptionPane.showMessageDialog(new JFrame(), "Internal Error", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
@@ -30,8 +29,7 @@ public class Main {
             System.exit(1);
         }
 
-        UserLogin ul = new UserLogin(obj);
-        ul.run();
+        GUI gui = new GUI();
     }
     
     private static HashMap<String, String> checkProperties() throws CalendarOrganizerException {
@@ -46,8 +44,13 @@ public class Main {
                 add("web_help_url");
             }
         };
-
-        HashMap<String, String> props = new ReadProperties("env.properties", neededProps).getPropertiesReaded();
+        
+        HashMap<String, String> props = null;
+        try{
+            props = new ReadProperties("env.properties", neededProps).getPropertiesReaded();
+        }catch(Exception ex){
+            throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
+        }
 
         for (String prop : neededProps) {
             if (props.get(prop) == null) {

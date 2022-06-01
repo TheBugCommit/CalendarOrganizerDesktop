@@ -13,7 +13,6 @@ public class User implements Cloneable {
     private long id;
     private String name;
     private String email;
-    private String password;
     private String surname1;
     private String surname2;
     private boolean locked;
@@ -23,17 +22,16 @@ public class User implements Cloneable {
     private Role role;
     private Nation nation;
     
-    //private ArrayList<Calendar> helperCalendars;
-    //private ArrayList<Calendar> ownerCalendars;
+    private ArrayList<Calendar> helperCalendars = new ArrayList<>();
+    private ArrayList<Calendar> ownerCalendars = new ArrayList<>();
 
 
-    public User(long id, String name, String email, String password,
+    public User(long id, String name, String email,
             String surname1, String surname2, boolean locked, Date birthDate,
             Gender gender, Role role, Nation nation, String phone) {
         this.setId(id);
         this.setName(name);
         this.setEmail(email);
-        this.setPassword(password);
         this.setSurname1(surname1);
         this.setSurname2(surname2);
         this.setLocked(locked);
@@ -44,13 +42,12 @@ public class User implements Cloneable {
         this.setNation(nation);
     }
 
-    public User(long id, String name, String email, String password,
+    public User(long id, String name, String email,
             String surname1, String surname2, boolean locked, Date birthDate,
             Gender gender, Role role, Nation nation) {
         this.setId(id);
         this.setName(name);
         this.setEmail(email);
-        this.setPassword(password);
         this.setSurname1(surname1);
         this.setSurname2(surname2);
         this.setLocked(locked);
@@ -116,21 +113,6 @@ public class User implements Cloneable {
             throw new RuntimeException("Email length between 1 and 100");
         
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    private void setPassword(String password) {
-        if (password == null) {
-            throw new RuntimeException("Password can't be null");
-        }
-        
-        if(password.length() < 8 || password.length() > 60)
-            throw new RuntimeException("Password length between 1 and 60");
-        
-        this.password = password;
     }
 
     public String getSurname1() {
@@ -202,6 +184,28 @@ public class User implements Cloneable {
         this.gender = gender;
     }
     
+    public void addOwnerCalendar(Calendar c){
+        if(c == null)
+            throw new RuntimeException("Calendar can't be null");
+        
+        this.ownerCalendars.add(c);
+    }
+    
+    public void addHelperCalendar(Calendar c){
+        if(c == null)
+            throw new RuntimeException("Calendar can't be null");
+        
+        this.helperCalendars.add(c);
+    }
+    
+    public ArrayList<Calendar> getOwnerCalendars(){
+        return (ArrayList<Calendar>) this.ownerCalendars.clone();
+    }
+    
+    public ArrayList<Calendar> getHelCalendars(){
+        return (ArrayList<Calendar>) this.helperCalendars.clone();
+    }
+    
     @Override
     public int hashCode() {
         int hash = 3;
@@ -229,13 +233,12 @@ public class User implements Cloneable {
 
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + ", surname1=" + surname1 + ", surname2=" + surname2 + ", locked=" + locked + ", birthDate=" + birthDate + ", phone=" + phone + ", gender=" + gender + ", role=" + role + ", nation=" + nation + '}';
+        return "User{" + "id=" + id + ", name=" + name + ", email=" + email + ", surname1=" + surname1 + ", surname2=" + surname2 + ", locked=" + locked + ", birthDate=" + birthDate + ", phone=" + phone + ", gender=" + gender + ", role=" + role + ", nation=" + nation + '}';
     }
-
 
     @Override
     public Object clone() {
-        return new User(this.getId(), this.getName(), this.getEmail(), this.getPassword(),
+        return new User(this.getId(), this.getName(), this.getEmail(),
                 this.getSurname1(), this.getSurname2(), this.isLocked(), this.getBirthDate(),
                 this.getGender(), this.getRole(), this.getNation());
     }

@@ -12,8 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import org.milaifontanals.Main;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
-import org.milaifontanals.persistencia.ICalendarOrganizer;
 import org.milaifontanals.utils.CloseWindow;
 
 public class UserLogin extends JFrame {
@@ -22,22 +22,18 @@ public class UserLogin extends JFrame {
     private JPasswordField passwordField;
     private JButton loginBtn;
     private JPanel contentPane;
-    private ICalendarOrganizer db;
 
     public void run() {
         setVisible(true);
-
     }
 
     public void close() {
-        dispose();
+        emailField.setText("");
+        passwordField.setText("");
         setVisible(false);
     }
 
-    public UserLogin(ICalendarOrganizer db) {
-
-        setDb(db);
-
+    public UserLogin() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(450, 190, 1014, 597);
         setResizable(false);
@@ -87,10 +83,9 @@ public class UserLogin extends JFrame {
                 String password = passwordField.getText();
 
                 try {
-                    if (db.checkAuth(email, password)) {
-                        close();
-                        Dashboard d = new Dashboard(db);
-                        d.run();
+                    if (Main.db.checkAuth(email, password)) {
+                        GUI.userLoginFrame.close();
+                        GUI.dashboardFrame.run();
                     } else {
                         JOptionPane.showMessageDialog(UserLogin.this, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -101,13 +96,8 @@ public class UserLogin extends JFrame {
             }
         });
 
-        addWindowListener(new CloseWindow(db));
+        addWindowListener(new CloseWindow());
 
         contentPane.add(loginBtn);
     }
-
-    private void setDb(ICalendarOrganizer db) {
-        this.db = db;
-    }
-
 }

@@ -11,7 +11,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import static javax.swing.KeyStroke.getKeyStroke;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
-import org.milaifontanals.persistencia.ICalendarOrganizer;
 import org.milaifontanals.utils.OpenBrowser;
 import org.milaifontanals.utils.ReadProperties;
 
@@ -23,7 +22,7 @@ public class Menu {
     
     private JMenuBar menu;
     
-    public Menu(Dashboard frame, ICalendarOrganizer db) throws CalendarOrganizerException {
+    public Menu(Dashboard frame) throws CalendarOrganizerException {
         
         setMenuBar(new JMenuBar());
         
@@ -57,11 +56,10 @@ public class Menu {
         logout.setAccelerator(getKeyStroke(KeyEvent.VK_F4, KeyEvent.ALT_DOWN_MASK));
         logout.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int a = JOptionPane.showConfirmDialog(frame, "Are you sure?");
+                int a = JOptionPane.showConfirmDialog(GUI.dashboardFrame, "Are you sure?");
                 if (a == JOptionPane.YES_OPTION) {
-                    frame.close();
-                    UserLogin ul = new UserLogin(db);
-                    ul.run();
+                    GUI.dashboardFrame.close();
+                    GUI.userLoginFrame.run();
                     return;
                 }
             }
@@ -85,12 +83,17 @@ public class Menu {
     }
     
     private HashMap<String,String> getWebUrls() throws CalendarOrganizerException {
-        HashMap<String,String> props = new ReadProperties("env.properties", 
+        HashMap<String,String> props = null;
+        try{
+            props = new ReadProperties("env.properties", 
                 new ArrayList<>(){{
                     add("web_url");
                     add("web_help_url");
                 }})
                 .getPropertiesReaded();
+        }catch(Exception ex){
+            throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
+        }
         
         if (props.get("web_url") == null || props.get("web_help_url") == null) {
             throw new CalendarOrganizerException("Need properites: web_url, web_help_url on file env.properties");

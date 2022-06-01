@@ -1,7 +1,7 @@
 package org.milaifontanals.models;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
 import java.util.Objects;
 
 /**
@@ -11,24 +11,24 @@ import java.util.Objects;
 public class Calendar implements Cloneable {
 
     private long id;
-    private User owner;
+    //private User owner;
     private String title;
     private String description;
     private Date startDate;
     private Date endDate;
     
-    public Calendar(long id, User owner, String title, Date startDate, Date endDate, String description) {
+    public Calendar(long id, String title, Date startDate, Date endDate, String description) {
         this.setId(id);
-        this.setOwner(owner);
+        //this.setOwner(owner);
         this.setTitle(title);
         this.setDescription(description);
         this.setStartDate(startDate);
         this.setEndDate(endDate);
     }
     
-    public Calendar(long id, User owner, String title, Date startDate, Date endDate) {
+    public Calendar(long id, String title, Date startDate, Date endDate) {
         this.setId(id);
-        this.setOwner(owner);
+        //this.setOwner(owner);
         this.setTitle(title);
         this.setStartDate(startDate);
         this.setEndDate(endDate);
@@ -42,7 +42,7 @@ public class Calendar implements Cloneable {
         this.id = id;
     }
 
-    public User getOwner() {
+    /*public User getOwner() {
         return owner;
     }
 
@@ -51,7 +51,7 @@ public class Calendar implements Cloneable {
             throw new RuntimeException("Owner can't be null");
         }
         this.owner = owner;
-    }
+    }*/
 
     public String getTitle() {
         return title;
@@ -111,16 +111,16 @@ public class Calendar implements Cloneable {
         
         this.endDate = (Date) endDate.clone();
     }
-
+    
     @Override
     public Object clone() {
-        return new Calendar(this.getId(), this.getOwner(), this.getTitle(),
+        return new Calendar(this.getId(), this.getTitle(),
                 this.getStartDate(), this.getEndDate(), this.getDescription());
     }
 
     @Override
     public String toString() {
-        return "Calendar{" + "id=" + id + ", owner=" + owner + ", title=" + title + ", description=" + description + ", startDate=" + startDate + ", endDate=" + endDate + '}';
+        return "Calendar{" + "id=" + id + ", title=" + title + ", description=" + description + ", startDate=" + startDate + ", endDate=" + endDate + '}';
     }
 
     @Override
