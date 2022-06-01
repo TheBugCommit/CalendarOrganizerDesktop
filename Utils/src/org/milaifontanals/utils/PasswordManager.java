@@ -1,4 +1,4 @@
-package org.milaifontanals.security;
+package org.milaifontanals.utils;
 
 import org.mindrot.jbcrypt.BCrypt;
 

@@ -1,13 +1,13 @@
 package org.milaifontanals;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.HashMap;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import org.milaifontanals.gui.UserLogin;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
 import org.milaifontanals.persistencia.ICalendarOrganizer;
+import org.milaifontanals.utils.ReadProperties;
 
 /**
  *
@@ -20,32 +20,41 @@ public class Main {
         ICalendarOrganizer obj = null;
 
         try {
-            obj = (ICalendarOrganizer) Class.forName(getDBPlugin()).newInstance();
+            HashMap<String, String> props = checkProperties();
+            obj = (ICalendarOrganizer) Class.forName(props.get("db_layer")).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             JOptionPane.showMessageDialog(new JFrame(), "Internal Error", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         } catch (CalendarOrganizerException ex) {
-            JOptionPane.showMessageDialog(new JFrame(), ex.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(new JFrame(), ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
 
         UserLogin ul = new UserLogin();
         ul.run(obj);
     }
+    
+    private static HashMap<String, String> checkProperties() throws CalendarOrganizerException {
+        ArrayList<String> neededProps = new ArrayList<>() {
+            {
+                add("db_layer");
+                add("db_url");
+                add("db_username");
+                add("db_password");
+                add("db_layer");
+                add("web_url");
+                add("web_help_url");
+            }
+        };
 
-    private static String getDBPlugin() throws CalendarOrganizerException {
-        Properties p = new Properties();
-        try {
-            p.load(new FileReader("connection.properties"));
-        } catch (IOException ex) {
-            throw new CalendarOrganizerException("Problem loading connection.properties config file", ex.getCause());
+        HashMap<String, String> props = new ReadProperties("env.properties", neededProps).getPropertiesReaded();
+
+        for (String prop : neededProps) {
+            if (props.get(prop) == null) {
+                throw new CalendarOrganizerException("Need property: " + prop);
+            }
         }
 
-        String layer = p.getProperty("db_layer");
-        if (layer == null) {
-            throw new CalendarOrganizerException("Need properites: db_layer");
-        }
-
-        return layer;
+        return props;
     }
 }

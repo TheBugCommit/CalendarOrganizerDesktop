@@ -10,11 +10,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import org.milaifontanals.persistencia.CalendarOrganizerException;
 import org.milaifontanals.persistencia.ICalendarOrganizer;
 
 /**
  *
- * @author g3cas
+ * @author Gerard Casas
  */
 public class Dashboard extends JFrame{
 
@@ -26,8 +27,9 @@ public class Dashboard extends JFrame{
         this.db = db;
     }
 
-    public Dashboard() {
+    public Dashboard() throws CalendarOrganizerException {
         setTitle("Calendar Organizer Admin Dashboard");
+        setJMenuBar(new Menu(this).getMenuBar());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(450, 190, 1014, 597);
         setResizable(false);
