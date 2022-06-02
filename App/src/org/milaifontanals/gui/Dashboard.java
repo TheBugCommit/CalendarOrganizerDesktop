@@ -11,8 +11,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
@@ -60,6 +58,7 @@ public class Dashboard extends JFrame {
     private JLabel emailLabel;
     public JTextField emailSearch;
     private User selectedUser;
+    private Calendar selectedCalendar;
 
     private SearchEmailDialog emailDialog;
     private SearchNameSurDialog nameSurDialog;
@@ -78,12 +77,17 @@ public class Dashboard extends JFrame {
     private JLabel ownerLabel;
     private JLabel helperLabel;
 
+    private EventsManager eventsDialog;
+
     private JPanel userInfo;
 
     public JTextField tfName, tfEmail, tfBirthDate, tfSurname1, tfSurname2, tfPhone;
     public ButtonGroup bgRole, bgLocked, bgGender;
     public JRadioButton genderF, genderM, genderO, lockedY, lockedN, roleA, roleC;
     public JComboBox jbNation;
+
+    private ArrayList<Calendar> selUserCalendarsOwner;
+    private ArrayList<Calendar> selUserCalendarsHelper;
 
     private final static String[] options = new String[]{"Search by Email", "Search by Name-Surname"};
 
@@ -110,6 +114,7 @@ public class Dashboard extends JFrame {
 
         addWindowListener(new CloseWindow());
 
+        eventsDialog = new EventsManager(this);
         emailDialog = new SearchEmailDialog();
         nameSurDialog = new SearchNameSurDialog();
 
@@ -121,7 +126,7 @@ public class Dashboard extends JFrame {
 
         //filters & user info
         JPanel filterPanel = new JPanel();
-        filterPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        filterPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         filterLabel = new JLabel("Filters: ");
         filterDropdown = initFilterOptions();
         filterPanel.add(filterLabel);
@@ -451,7 +456,24 @@ public class Dashboard extends JFrame {
         table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
+
                 if (e.getValueIsAdjusting()) {
+                    if (ownerCalendars.getSelectionModel() == e.getSource()) {
+                        int n = ownerCalendars.getSelectedRow();
+                        if (n == -1) {
+                            return;
+                        }
+                        selectedCalendar = selUserCalendarsOwner.get(n);
+                        eventsDialog.run(selectedCalendar, selectedUser);
+
+                    } else {
+                        int n = helperCalendars.getSelectedRow();
+                        if (n == -1) {
+                            return;
+                        }
+                        selectedCalendar = selUserCalendarsHelper.get(n);
+                        eventsDialog.run(selectedCalendar, selectedUser);
+                    }
                     //TODO SELECT CALENDAR
                 }
             }
@@ -475,7 +497,7 @@ public class Dashboard extends JFrame {
 
     private void fillCalendarTable(DefaultTableModel model, ArrayList<Calendar> calendars) {
         for (Calendar cal : calendars) {
-            model.addRow(new Object[]{cal.getTitle(), cal.getDescription(), cal.getStartDate(), cal.getEndDate()});
+            model.addRow(new Object[]{cal.getTitle(), cal.getDescription(), cal.getStartDate(), cal.getEndDate(), cal.getId()});
         }
     }
 
@@ -486,9 +508,10 @@ public class Dashboard extends JFrame {
 
     private void fetchCalendars() {
         try {
-            selectedUser = Main.db.getUserCalendars(selectedUser);
-            fillCalendarTable(ownerDefTabMod, selectedUser.getOwnerCalendars());
-            fillCalendarTable(helperDefTabMod, selectedUser.getHelCalendars());
+            selUserCalendarsHelper = Main.db.getUserHelperCalendars(selectedUser.getId());
+            selUserCalendarsOwner = Main.db.getUserOwnerCalendars(selectedUser.getId());
+            fillCalendarTable(ownerDefTabMod, selUserCalendarsOwner);
+            fillCalendarTable(helperDefTabMod, selUserCalendarsHelper);
         } catch (CalendarOrganizerException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -538,11 +561,11 @@ public class Dashboard extends JFrame {
         }
 
         genderF = new JRadioButton(Gender.FEMALE.getName());
-        genderF.setActionCommand("genderF");
+        genderF.setActionCommand("Famale");
         genderM = new JRadioButton(Gender.MALE.getName());
-        genderM.setActionCommand("genderM");
+        genderM.setActionCommand("Male");
         genderO = new JRadioButton(Gender.OTHER.getName());
-        genderO.setActionCommand("genderO");
+        genderO.setActionCommand("Other");
         lockedN = new JRadioButton("No");
         lockedN.setActionCommand("lockedN");
         lockedY = new JRadioButton("Yes");
@@ -719,11 +742,14 @@ public class Dashboard extends JFrame {
         String lockedC = bgLocked.getSelection().getActionCommand();
         String roleC = bgRole.getSelection().getActionCommand();
         String genderC = bgGender.getSelection().getActionCommand();
-
+        System.out.println(roleC);
         boolean locked = lockedC.equals("lockedY");
         Role role = roleC.equals("roleA") ? Role.ADMIN : Role.CUSTOMER;
         Gender gender = genderC.equals(Gender.FEMALE.getName()) ? Gender.FEMALE
                 : genderC.equals(Gender.MALE.getName()) ? Gender.MALE : Gender.OTHER;
+        System.out.println(genderC);
+        System.out.println(role);
+        System.out.println(selectedUser);
         Nation nation = (Nation) jbNation.getSelectedItem();
 
         if (!DateValidatorSimpleDateFormat.isValid(tfBirthDate.getText())) {

@@ -5,12 +5,11 @@ import java.util.Objects;
 
 /**
  *
- * @author g3cas
+ * @author Gerard Casas
  */
 public class Event implements Cloneable {
 
     private long id;
-    private Calendar calendar;
     private Category category;
     private User user;
     private String title;
@@ -21,11 +20,10 @@ public class Event implements Cloneable {
     private Timestamp start;
     private Timestamp end;
 
-    public Event(long id, Calendar calendar, Category category, User user,
+    public Event(long id, Category category, User user,
             String title, String description, String location,
             boolean published, String color, Timestamp start, Timestamp end) {
         this.setId(id);
-        this.setCalendar(calendar);
         this.setCategory(category);
         this.setUser(user);
         this.setTitle(title);
@@ -45,7 +43,7 @@ public class Event implements Cloneable {
         this.id = id;
     }
 
-    public Calendar getCalendar() {
+    /*public Calendar getCalendar() {
         return calendar;
     }
 
@@ -54,7 +52,7 @@ public class Event implements Cloneable {
             throw new RuntimeException("Calendar can't be null");
         }
         this.calendar = calendar;
-    }
+    }*/
 
     public Category getCategory() {
         return category;
@@ -201,13 +199,12 @@ public class Event implements Cloneable {
 
     @Override
     public String toString() {
-        return "Event{" + "id=" + id + ", calendar=" + calendar + ", category=" + category + ", user=" + user + ", title=" + title + ", description=" + description + ", location=" + location + ", published=" + published + ", color=" + color + ", start=" + start + ", end=" + end + '}';
+        return "Event{" + "id=" + id + ", category=" + category + ", user=" + user + ", title=" + title + ", description=" + description + ", location=" + location + ", published=" + published + ", color=" + color + ", start=" + start + ", end=" + end + '}';
     }
 
     @Override
     public Object clone() {
-        return new Event(this.getId(), this.getCalendar(),
-                this.getCategory(), this.getUser(), this.getTitle(),
+        return new Event(this.getId(),this.getCategory(), this.getUser(), this.getTitle(),
                 this.getDescription(), this.getLocation(),
                 this.isPublished(), this.getColor(), this.getStart(), this.getEnd());
     }

@@ -7,7 +7,7 @@ import java.util.Objects;
  * @author Gerard Casas
  */
 public enum Role {
-    ADMIN(1, "Admin"),CUSTOMER(1, "Customer");
+    ADMIN(1, "Admin"),CUSTOMER(2, "Customer");
     
     private long id;
     private String name;

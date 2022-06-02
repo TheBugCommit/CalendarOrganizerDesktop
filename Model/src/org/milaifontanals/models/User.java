@@ -26,8 +26,8 @@ public class User implements Cloneable {
     private Role role;
     private Nation nation;
 
-    private ArrayList<Calendar> helperCalendars = new ArrayList<>();
-    private ArrayList<Calendar> ownerCalendars = new ArrayList<>();
+    //private ArrayList<Calendar> helperCalendars = new ArrayList<>();
+    //private ArrayList<Calendar> ownerCalendars = new ArrayList<>();
 
     public User(long id, String name, String email,
             String surname1, String surname2, boolean locked, Date birthDate,
@@ -204,7 +204,7 @@ public class User implements Cloneable {
         this.gender = gender;
     }
 
-    public void addOwnerCalendar(Calendar c) {
+   /* public void addOwnerCalendar(Calendar c) {
         if (c == null) {
             throw new RuntimeException("Calendar can't be null");
         }
@@ -219,6 +219,14 @@ public class User implements Cloneable {
 
         this.helperCalendars.add(c);
     }
+    
+    public void setOwnerCalendars(ArrayList<Calendar> calendars){
+        this.ownerCalendars = (ArrayList<Calendar>) calendars.clone();
+    }
+    
+    public void setHelperCalendars(ArrayList<Calendar> calendars){
+        this.helperCalendars = (ArrayList<Calendar>) calendars.clone();
+    }
 
     public ArrayList<Calendar> getOwnerCalendars() {
         return (ArrayList<Calendar>) this.ownerCalendars.clone();
@@ -227,7 +235,7 @@ public class User implements Cloneable {
     public ArrayList<Calendar> getHelCalendars() {
         return (ArrayList<Calendar>) this.helperCalendars.clone();
     }
-
+*/
     @Override
     public int hashCode() {
         int hash = 3;

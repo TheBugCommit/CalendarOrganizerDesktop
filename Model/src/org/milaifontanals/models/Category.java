@@ -9,12 +9,12 @@ import java.util.Objects;
 public class Category implements Cloneable {
 
     private long id;
-    private User user;
+   // private User user;
     private String name;
 
-    public Category(long id, User user, String name) {
+    public Category(long id, String name) {
         this.setId(id);
-        this.setUser(user);
+        //this.setUser(user);
         this.setName(name);
     }
 
@@ -26,7 +26,7 @@ public class Category implements Cloneable {
         this.id = id;
     }
 
-    public User getUser() {
+    /*public User getUser() {
         return user;
     }
 
@@ -35,7 +35,7 @@ public class Category implements Cloneable {
             throw new RuntimeException("User can't be null");
         }
         this.user = user;
-    }
+    }*/
 
     public String getName() {
         return name;
@@ -54,12 +54,12 @@ public class Category implements Cloneable {
 
     @Override
     public Object clone() {
-        return new Category(this.getId(), this.getUser(), this.getName());
+        return new Category(this.getId(), this.getName());
     }
 
     @Override
     public String toString() {
-        return "Category{" + "id=" + id + ", user=" + user + ", name=" + name + '}';
+        return "Category{" + "id=" + id + ", name=" + name + '}';
     }
 
     @Override

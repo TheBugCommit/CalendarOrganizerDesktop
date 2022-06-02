@@ -8,8 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.milaifontanals.models.Calendar;
+import org.milaifontanals.models.Category;
+import org.milaifontanals.models.Event;
 import org.milaifontanals.models.Gender;
 import org.milaifontanals.models.Nation;
 import org.milaifontanals.models.Role;
@@ -82,9 +87,8 @@ public class BDRLayer implements ICalendarOrganizer {
         try {
             PreparedStatement ps = con.prepareStatement("select u.*, n.id as nation_id, n.code, n.name as nation_name "
                     + "from users u inner join nations n on u.nation_id = n.id "
-                    + "where lower(u.email) = lower(?) and u.role_id != ?");
+                    + "where lower(u.email) = lower(?)");
             ps.setString(1, email);
-            ps.setLong(2, Role.ADMIN.getId());
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -103,14 +107,13 @@ public class BDRLayer implements ICalendarOrganizer {
         try {
             PreparedStatement ps = con.prepareStatement("select u.*, n.id as nation_id, n.code, n.name as nation_name "
                     + "from users u inner join nations n on u.nation_id = n.id "
-                    + "where u.role_id != ? and (lower(u.name) like concat('%',lower(?),'%') or "
+                    + "where (lower(u.name) like concat('%',lower(?),'%') or "
                     + "lower(u.surname1) like concat('%',lower(?),'%') or "
                     + "lower(u.surname2) like concat('%',lower(?),'%'))");
 
-            ps.setLong(1, Role.ADMIN.getId());
+            ps.setString(1, nameSurname);
             ps.setString(2, nameSurname);
             ps.setString(3, nameSurname);
-            ps.setString(4, nameSurname);
 
             ResultSet rs = ps.executeQuery();
 
@@ -125,36 +128,44 @@ public class BDRLayer implements ICalendarOrganizer {
     }
 
     @Override
-    public User getUserCalendars(User u) throws CalendarOrganizerException {
-        User user = (User) u.clone();
+    public ArrayList<Calendar> getUserOwnerCalendars(long userId) throws CalendarOrganizerException {
+        ArrayList<Calendar> calendars = new ArrayList<>();
         try {
             String sqlOwner = "select * from calendars c INNER join users u "
                     + "on u.id = c.user_id where u.id = ?";
+            PreparedStatement psOwner = con.prepareStatement(sqlOwner);
+            psOwner.setLong(1, userId);
+            ResultSet rsOwner = psOwner.executeQuery();
+            while (rsOwner.next()) {
+                calendars.add(collectCalendar(rsOwner));
+            }
+        } catch (SQLException ex) {
+            throw new CalendarOrganizerException("An error occured can't get user owner calendars", ex);
+        }
+
+        return calendars;
+    }
+
+    @Override
+    public ArrayList<Calendar> getUserHelperCalendars(long userId) throws CalendarOrganizerException {
+        ArrayList<Calendar> calendars = new ArrayList<>();
+        try {
             String sqlHelper = "select * from calendars c INNER join calendar_user cu "
                     + "on c.id = cu.calendar_id INNER join users u on u.id = CU.user_id "
                     + "where u.id = ?";
-
-            PreparedStatement psOwner = con.prepareStatement(sqlOwner);
             PreparedStatement psHelper = con.prepareStatement(sqlHelper);
 
-            psOwner.setLong(1, u.getId());
-            psHelper.setLong(1, u.getId());
-
-            ResultSet rsOwner = psOwner.executeQuery();
+            psHelper.setLong(1, userId);
             ResultSet rsHelper = psHelper.executeQuery();
 
-            while (rsOwner.next()) {
-                user.addOwnerCalendar(collectCalendar(rsOwner));
-            }
-
             while (rsHelper.next()) {
-                user.addHelperCalendar(collectCalendar(rsHelper));
+                calendars.add(collectCalendar(rsHelper));
             }
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("An error occured can't get user calendars", ex);
+            throw new CalendarOrganizerException("An error occured can't get user helper calendars", ex);
         }
 
-        return user;
+        return calendars;
     }
 
     @Override
@@ -199,7 +210,7 @@ public class BDRLayer implements ICalendarOrganizer {
             String g = rs.getString("gender");
             Gender gender = g.equals(Gender.MALE.getGenderChar()) ? Gender.MALE
                     : g.equals(Gender.FEMALE.getGenderChar()) ? Gender.FEMALE : Gender.OTHER;
-            Role role = Role.CUSTOMER;
+            Role role = rs.getLong("role_id") == Role.CUSTOMER.getId() ? Role.CUSTOMER : Role.ADMIN;
             Nation nation = new Nation(rs.getLong("nation_id"), rs.getString("code"), rs.getString("nation_name"));
 
             u = new User(id, name, email, surname1, surname2, locked, birthDate, gender, role, nation, phone);
@@ -221,7 +232,7 @@ public class BDRLayer implements ICalendarOrganizer {
             Date end = rs.getDate("end_date");
             c = new Calendar(id, title, start, end, desc);
         } catch (RuntimeException | SQLException ex) {
-            throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
+            throw new CalendarOrganizerException(ex.getMessage(), ex);
         }
         return c;
     }
@@ -229,23 +240,23 @@ public class BDRLayer implements ICalendarOrganizer {
     @Override
     public ArrayList<Nation> getNations() throws CalendarOrganizerException {
         ArrayList<Nation> nations = new ArrayList<>();
-        try{
+        try {
             PreparedStatement ps = con.prepareStatement("select * from nations");
             ResultSet rs = ps.executeQuery();
-            
-            while(rs.next()){
+
+            while (rs.next()) {
                 nations.add(new Nation(rs.getLong("id"), rs.getString("code"), rs.getString("name")));
             }
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new CalendarOrganizerException("Sorry can't get nations", ex);
         }
-        
+
         return nations;
     }
 
     @Override
     public void updateUser(User user) throws CalendarOrganizerException {
-        try{
+        try {
             String sql = "update users set name=?, surname1=?, surname2=?, locked=?, "
                     + "birth_date=?, phone=?, gender=?, role_id=?, nation_id=? where "
                     + "id=?";
@@ -260,12 +271,90 @@ public class BDRLayer implements ICalendarOrganizer {
             ps.setLong(8, user.getRole().getId());
             ps.setLong(9, user.getNation().getId());
             ps.setLong(10, user.getId());
-            
+
             ps.executeUpdate();
             commit();
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             rollBack();
             throw new CalendarOrganizerException("Error updating user", ex);
+        }
+    }
+
+    @Override
+    public ArrayList<Event> getCalendarEvents(long calendarId) throws CalendarOrganizerException {
+        ArrayList<Event> events = new ArrayList<Event>();
+        try {
+            String sql = "select e.id as event_id, e.calendar_id, e.category_id, e.title, e.description, "
+                    + "e.location, e.published, e.color, e.start, e.end, "
+                    + "c.id as cat_id, c.name as category_name, u.*, n.id as nation_id, n.code, n.name as nation_name "
+                    + "from events e inner join categories c "
+                    + "on c.id = e.category_id "
+                    + "inner join users u on u.id = e.user_id "
+                    + "inner join nations n on n.id = u.nation_id "
+                    + "where e.calendar_id=?";
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setLong(1, calendarId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                events.add(collectEvent(rs));
+            }
+        } catch (SQLException ex) {
+            throw new CalendarOrganizerException("Can't get calendar events", ex);
+        }
+
+        return events;
+    }
+
+    @Override
+    public Event collectEvent(ResultSet rs) throws CalendarOrganizerException {
+        User user = collectUser(rs);
+        try {
+            long id = rs.getLong("id");
+            Category category = new Category(rs.getLong("cat_id"), rs.getString("category_name"));
+            String title = rs.getString("title");
+            String desc = rs.getString("description");
+            String location = rs.getString("location");
+            boolean published = rs.getBoolean("published");
+            String color = rs.getString("color");
+            Timestamp start = rs.getTimestamp("start");
+            Timestamp end = rs.getTimestamp("end");
+            return new Event(id, category, user, title, desc, location, published, color, start, end);
+        } catch (SQLException | RuntimeException ex) {
+            throw new CalendarOrganizerException(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public void deleteEvent(long id) throws CalendarOrganizerException {
+        try {
+            String sql = "delete from events where id=? and published=0";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setLong(1, id);
+            ps.executeUpdate();
+            commit();
+        } catch (SQLException ex) {
+            rollBack();
+            throw new CalendarOrganizerException("Sorry can't delete this event", ex);
+        }
+    }
+
+    @Override
+    public boolean eventIsPublished(long id) throws CalendarOrganizerException {
+        try {
+            String sql = "select published from events where id=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            boolean pub = false;
+            if (rs.next()) {
+                pub = rs.getBoolean("published");
+            }
+            return pub;
+//return (rs.getBoolean("published"));
+        } catch (SQLException ex) {
+            throw new CalendarOrganizerException("Sorry can't check if event is published", ex);
         }
     }
 }
