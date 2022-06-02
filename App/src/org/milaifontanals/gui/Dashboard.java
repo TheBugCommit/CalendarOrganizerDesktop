@@ -721,7 +721,7 @@ public class Dashboard extends JFrame {
         String genderC = bgGender.getSelection().getActionCommand();
 
         boolean locked = lockedC.equals("lockedY");
-        Role role = roleC.equals(Role.ADMIN.getName()) ? Role.ADMIN : Role.CUSTOMER;
+        Role role = roleC.equals("roleA") ? Role.ADMIN : Role.CUSTOMER;
         Gender gender = genderC.equals(Gender.FEMALE.getName()) ? Gender.FEMALE
                 : genderC.equals(Gender.MALE.getName()) ? Gender.MALE : Gender.OTHER;
         Nation nation = (Nation) jbNation.getSelectedItem();
