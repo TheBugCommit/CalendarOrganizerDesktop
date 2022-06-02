@@ -52,7 +52,7 @@ public class BDRLayer implements ICalendarOrganizer {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
 
-            throw new CalendarOrganizerException("Error trying to connecto to database", ex.getCause());
+            throw new CalendarOrganizerException("Error trying to connecto to database", ex);
         }
     }
 
@@ -72,7 +72,7 @@ public class BDRLayer implements ICalendarOrganizer {
             ResultSet rs = ps.executeQuery();
             return rs.next();
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("An error ocurred can't check auth Error: " + ex.getMessage(), ex.getCause());
+            throw new CalendarOrganizerException("An error ocurred can't check auth Error: " + ex.getMessage(), ex);
         }
     }
 
@@ -91,7 +91,7 @@ public class BDRLayer implements ICalendarOrganizer {
                 u = collectUser(rs);
             }
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("An error occured can't search user", ex.getCause());
+            throw new CalendarOrganizerException("An error occured can't search user", ex);
         }
 
         return u;
@@ -103,9 +103,9 @@ public class BDRLayer implements ICalendarOrganizer {
         try {
             PreparedStatement ps = con.prepareStatement("select u.*, n.id as nation_id, n.code, n.name as nation_name "
                     + "from users u inner join nations n on u.nation_id = n.id "
-                    + "where u.role_id != ? and lower(u.name) like concat('%',lower(?),'%') or "
+                    + "where u.role_id != ? and (lower(u.name) like concat('%',lower(?),'%') or "
                     + "lower(u.surname1) like concat('%',lower(?),'%') or "
-                    + "lower(u.surname2) like concat('%',lower(?),'%')");
+                    + "lower(u.surname2) like concat('%',lower(?),'%'))");
 
             ps.setLong(1, Role.ADMIN.getId());
             ps.setString(2, nameSurname);
@@ -118,7 +118,7 @@ public class BDRLayer implements ICalendarOrganizer {
                 u.add(collectUser(rs));
             }
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("An error occured can't search user", ex.getCause());
+            throw new CalendarOrganizerException("An error occured can't search user", ex);
         }
 
         return u;
@@ -151,7 +151,7 @@ public class BDRLayer implements ICalendarOrganizer {
                 user.addHelperCalendar(collectCalendar(rsHelper));
             }
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("An error occured can't get user calendars", ex.getCause());
+            throw new CalendarOrganizerException("An error occured can't get user calendars", ex);
         }
 
         return user;
@@ -162,7 +162,7 @@ public class BDRLayer implements ICalendarOrganizer {
         try {
             con.commit();
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("Error en validar els canvis", ex);
+            throw new CalendarOrganizerException("Error committing", ex);
         }
     }
 
@@ -171,7 +171,7 @@ public class BDRLayer implements ICalendarOrganizer {
         try {
             con.rollback();
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("Error en desfer els canvis", ex);
+            throw new CalendarOrganizerException("Error doing rollback", ex);
         }
     }
 
@@ -181,7 +181,7 @@ public class BDRLayer implements ICalendarOrganizer {
             con.rollback();
             con.close();
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException("Error en tancar la capa", ex);
+            throw new CalendarOrganizerException("Error closing database connection", ex);
         }
     }
 
@@ -197,14 +197,14 @@ public class BDRLayer implements ICalendarOrganizer {
             Date birthDate = rs.getDate("birth_date");
             String phone = rs.getString("phone");
             String g = rs.getString("gender");
-            Gender gender = g.equals(Gender.MALE.getGender()) ? Gender.MALE
-                    : g.equals(Gender.FEMALE.getGender()) ? Gender.FEMALE : Gender.OTHER;
+            Gender gender = g.equals(Gender.MALE.getGenderChar()) ? Gender.MALE
+                    : g.equals(Gender.FEMALE.getGenderChar()) ? Gender.FEMALE : Gender.OTHER;
             Role role = Role.CUSTOMER;
             Nation nation = new Nation(rs.getLong("nation_id"), rs.getString("code"), rs.getString("nation_name"));
 
             u = new User(id, name, email, surname1, surname2, locked, birthDate, gender, role, nation, phone);
         } catch (SQLException ex) {
-            throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
+            throw new CalendarOrganizerException(ex.getMessage(), ex);
         }
 
         return u;
@@ -224,5 +224,48 @@ public class BDRLayer implements ICalendarOrganizer {
             throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
         }
         return c;
+    }
+
+    @Override
+    public ArrayList<Nation> getNations() throws CalendarOrganizerException {
+        ArrayList<Nation> nations = new ArrayList<>();
+        try{
+            PreparedStatement ps = con.prepareStatement("select * from nations");
+            ResultSet rs = ps.executeQuery();
+            
+            while(rs.next()){
+                nations.add(new Nation(rs.getLong("id"), rs.getString("code"), rs.getString("name")));
+            }
+        }catch(SQLException ex){
+            throw new CalendarOrganizerException("Sorry can't get nations", ex);
+        }
+        
+        return nations;
+    }
+
+    @Override
+    public void updateUser(User user) throws CalendarOrganizerException {
+        try{
+            String sql = "update users set name=?, surname1=?, surname2=?, locked=?, "
+                    + "birth_date=?, phone=?, gender=?, role_id=?, nation_id=? where "
+                    + "id=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getSurname1());
+            ps.setString(3, user.getSurname2());
+            ps.setBoolean(4, user.isLocked());
+            ps.setDate(5, user.getBirthDate());
+            ps.setString(6, user.getPhone());
+            ps.setString(7, user.getGender().getGenderChar());
+            ps.setLong(8, user.getRole().getId());
+            ps.setLong(9, user.getNation().getId());
+            ps.setLong(10, user.getId());
+            
+            ps.executeUpdate();
+            commit();
+        }catch(SQLException ex){
+            rollBack();
+            throw new CalendarOrganizerException("Error updating user", ex);
+        }
     }
 }

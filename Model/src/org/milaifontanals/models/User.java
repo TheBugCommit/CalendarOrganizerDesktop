@@ -1,8 +1,12 @@
 package org.milaifontanals.models;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -21,10 +25,9 @@ public class User implements Cloneable {
     private Gender gender;
     private Role role;
     private Nation nation;
-    
+
     private ArrayList<Calendar> helperCalendars = new ArrayList<>();
     private ArrayList<Calendar> ownerCalendars = new ArrayList<>();
-
 
     public User(long id, String name, String email,
             String surname1, String surname2, boolean locked, Date birthDate,
@@ -95,8 +98,9 @@ public class User implements Cloneable {
         if (name == null) {
             throw new RuntimeException("Name can't be null");
         }
-        if(name.length() < 1 || name.length() > 30)
+        if (name.length() < 1 || name.length() > 30) {
             throw new RuntimeException("Name length between 1 and 30");
+        }
         this.name = name;
     }
 
@@ -108,10 +112,11 @@ public class User implements Cloneable {
         if (email == null) {
             throw new RuntimeException("Email can't be null");
         }
-        
-        if(email.length() < 1 || email.length() > 100)
+
+        if (email.length() < 1 || email.length() > 100) {
             throw new RuntimeException("Email length between 1 and 100");
-        
+        }
+
         this.email = email;
     }
 
@@ -123,10 +128,11 @@ public class User implements Cloneable {
         if (surname1 == null) {
             throw new RuntimeException("Surname1 can't be null");
         }
-        
-        if(surname1.length() < 1 || surname1.length() > 30)
+
+        if (surname1.length() < 1 || surname1.length() > 30) {
             throw new RuntimeException("Surname1 length between 1 and 30");
-        
+        }
+
         this.surname1 = surname1;
     }
 
@@ -138,11 +144,11 @@ public class User implements Cloneable {
         if (surname2 == null) {
             throw new RuntimeException("Surname2 can't be null");
         }
-        
-        
-        if(surname2.length() < 1 || surname2.length() > 30)
+
+        if (surname2.length() < 1 || surname2.length() > 30) {
             throw new RuntimeException("Surname2 length between 1 and 30");
-        
+        }
+
         this.surname2 = surname2;
     }
 
@@ -162,6 +168,13 @@ public class User implements Cloneable {
         if (birthDate == null) {
             throw new RuntimeException("birthDate can't be null");
         }
+        LocalDate start = birthDate.toLocalDate();
+        LocalDate end = LocalDate.now();
+        long years = ChronoUnit.YEARS.between(start, end);
+        if (years < 18) {
+            throw new RuntimeException("Invalid date of birth. you have to be at least 18 years old");
+        }
+        
         this.birthDate = (Date) birthDate.clone();
     }
 
@@ -170,6 +183,13 @@ public class User implements Cloneable {
     }
 
     public void setPhone(String phone) {
+        if (phone != null) {
+            Pattern pattern = Pattern.compile("^\\d{9}$");
+            Matcher matcher = pattern.matcher(phone);
+            if (!matcher.matches()) {
+                throw new RuntimeException("Invalid phone, the length of the phone should be 9");
+            }
+        }
         this.phone = phone;
     }
 
@@ -183,29 +203,31 @@ public class User implements Cloneable {
         }
         this.gender = gender;
     }
-    
-    public void addOwnerCalendar(Calendar c){
-        if(c == null)
+
+    public void addOwnerCalendar(Calendar c) {
+        if (c == null) {
             throw new RuntimeException("Calendar can't be null");
-        
+        }
+
         this.ownerCalendars.add(c);
     }
-    
-    public void addHelperCalendar(Calendar c){
-        if(c == null)
+
+    public void addHelperCalendar(Calendar c) {
+        if (c == null) {
             throw new RuntimeException("Calendar can't be null");
-        
+        }
+
         this.helperCalendars.add(c);
     }
-    
-    public ArrayList<Calendar> getOwnerCalendars(){
+
+    public ArrayList<Calendar> getOwnerCalendars() {
         return (ArrayList<Calendar>) this.ownerCalendars.clone();
     }
-    
-    public ArrayList<Calendar> getHelCalendars(){
+
+    public ArrayList<Calendar> getHelCalendars() {
         return (ArrayList<Calendar>) this.helperCalendars.clone();
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 3;

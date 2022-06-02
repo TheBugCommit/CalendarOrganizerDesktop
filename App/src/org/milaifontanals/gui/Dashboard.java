@@ -11,11 +11,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -23,6 +26,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
@@ -40,6 +44,10 @@ import org.milaifontanals.models.User;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
 import org.milaifontanals.gui.utils.CloseWindow;
 import org.milaifontanals.models.Calendar;
+import org.milaifontanals.models.Gender;
+import org.milaifontanals.models.Nation;
+import org.milaifontanals.models.Role;
+import org.milaifontanals.utils.DateValidatorSimpleDateFormat;
 
 /**
  *
@@ -71,27 +79,11 @@ public class Dashboard extends JFrame {
     private JLabel helperLabel;
 
     private JPanel userInfo;
-    private JLabel lName;
-    private JLabel lEmail;
-    private JLabel lGender;
-    private JLabel lLocked;
-    private JLabel lRole;
-    private JLabel lNation;
-    private JLabel lBirthDate;
-    private JLabel lSurname1;
-    private JLabel lSurname2;
-    private JLabel lPhone;
 
-    private JTextField tfName;
-    private JTextField tfEmail;
-    private JTextField tfGender;
-    private JTextField tfLocked;
-    private JTextField tfRole;
-    private JTextField tfNation;
-    private JTextField tfBirthDate;
-    private JTextField tfSurname1;
-    private JTextField tfSurname2;
-    private JTextField tfPhone;
+    public JTextField tfName, tfEmail, tfBirthDate, tfSurname1, tfSurname2, tfPhone;
+    public ButtonGroup bgRole, bgLocked, bgGender;
+    public JRadioButton genderF, genderM, genderO, lockedY, lockedN, roleA, roleC;
+    public JComboBox jbNation;
 
     private final static String[] options = new String[]{"Search by Email", "Search by Name-Surname"};
 
@@ -121,7 +113,8 @@ public class Dashboard extends JFrame {
         emailDialog = new SearchEmailDialog();
         nameSurDialog = new SearchNameSurDialog();
 
-        eastPanel = new JPanel();
+        eastPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        eastPanel.setLayout(new BoxLayout(eastPanel, BoxLayout.PAGE_AXIS));
         pTables = new JPanel(new GridLayout(0, 2));
         pCenterDashboard = new JPanel();
         pCenterDashboard.setLayout(new BoxLayout(pCenterDashboard, BoxLayout.PAGE_AXIS));
@@ -193,27 +186,6 @@ public class Dashboard extends JFrame {
         return filterDropdown;
     }
 
-    private void setSearchByEmail() {
-        try {
-            User u = Main.db.searchUserByEmail("albert@gmail.com");
-            /*u = db.getUserCalendars(u);
-            System.out.println(u.toString());
-            for(Calendar c : u.getHelCalendars()){
-                System.out.println(c.toString() + "Helper");
-            }
-            for(Calendar c : u.getOwnerCalendars()){
-                System.out.println(c.toString() + "Owner");
-            }*/
-
-            ArrayList<User> u2 = Main.db.searchUserByNameSurname("cas");
-            for (User ut : u2) {
-                System.out.println(ut);
-            }
-        } catch (CalendarOrganizerException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
     private class ManageCombo implements ActionListener {
 
         @Override
@@ -259,6 +231,8 @@ public class Dashboard extends JFrame {
                         close();
                         removeCalendars();
                         fetchCalendars();
+                        changeUserInfo();
+                        showUserInfo();
                     } catch (CalendarOrganizerException ex) {
                         JOptionPane.showMessageDialog(SearchEmailDialog.this,
                                 "Something went wrong searching user",
@@ -441,12 +415,13 @@ public class Dashboard extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getActionCommand());
                 User u = (User) dropdown.getSelectedItem();
                 selectedUser = u;
                 close();
                 removeCalendars();
                 fetchCalendars();
+                changeUserInfo();
+                showUserInfo();
             }
         }
     }
@@ -477,8 +452,7 @@ public class Dashboard extends JFrame {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
-                    System.out.println(e.getClass().getName());
-                    System.out.println("selected");
+                    //TODO SELECT CALENDAR
                 }
             }
         });
@@ -515,85 +489,252 @@ public class Dashboard extends JFrame {
             selectedUser = Main.db.getUserCalendars(selectedUser);
             fillCalendarTable(ownerDefTabMod, selectedUser.getOwnerCalendars());
             fillCalendarTable(helperDefTabMod, selectedUser.getHelCalendars());
-            System.out.println(selectedUser.toString());
         } catch (CalendarOrganizerException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Something went wrong getting user calendars",
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private JPanel initUserInfo() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        ArrayList<Nation> nations = null;
+        try {
+            nations = Main.db.getNations();
+        } catch (CalendarOrganizerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return panel;
+        }
+
         JButton editButton = new JButton("Edit User");
 
-        lName = new JLabel("Name: ");
-        lEmail = new JLabel("Email: ");
-        lGender = new JLabel("Gender: ");
-        lLocked = new JLabel("Is Loked: ");
-        lRole = new JLabel("Role: ");
-        lNation = new JLabel("Nation: ");
-        lBirthDate = new JLabel("Birth Date: ");
-        lSurname1 = new JLabel("First Surname: ");
-        lSurname2 = new JLabel("Second Surname: ");
-        lPhone = new JLabel("Phone: ");
+        bgRole = new ButtonGroup();
+        bgLocked = new ButtonGroup();
+        bgGender = new ButtonGroup();
+
+        JLabel lTitle = new JLabel("User Information");
+        JLabel lName = new JLabel("Name: ");
+        JLabel lEmail = new JLabel("Email: ");
+        JLabel lGender = new JLabel("Gender: ");
+        JLabel lLocked = new JLabel("Is Loked: ");
+        JLabel lRole = new JLabel("Role: ");
+        JLabel lNation = new JLabel("Nation: ");
+        JLabel lBirthDate = new JLabel("Birth Date: ");
+        JLabel lSurname1 = new JLabel("First Surname: ");
+        JLabel lSurname2 = new JLabel("Second Surname: ");
+        JLabel lPhone = new JLabel("Phone: ");
+
         tfName = new JTextField();
         tfEmail = new JTextField();
-        tfGender = new JTextField();
-        tfLocked = new JTextField();
-        tfRole = new JTextField();
-        tfNation = new JTextField();
+        tfEmail.setEditable(false);
+        jbNation = new JComboBox();
         tfBirthDate = new JTextField();
         tfSurname1 = new JTextField();
         tfSurname2 = new JTextField();
         tfPhone = new JTextField();
 
+        for (Nation nation : nations) {
+            jbNation.addItem(nation);
+        }
+
+        genderF = new JRadioButton(Gender.FEMALE.getName());
+        genderF.setActionCommand("genderF");
+        genderM = new JRadioButton(Gender.MALE.getName());
+        genderM.setActionCommand("genderM");
+        genderO = new JRadioButton(Gender.OTHER.getName());
+        genderO.setActionCommand("genderO");
+        lockedN = new JRadioButton("No");
+        lockedN.setActionCommand("lockedN");
+        lockedY = new JRadioButton("Yes");
+        lockedY.setActionCommand("lockedY");
+        roleA = new JRadioButton(Role.ADMIN.getName());
+        roleA.setActionCommand("roleA");
+        roleC = new JRadioButton(Role.CUSTOMER.getName());
+        roleC.setActionCommand("roleC");
+
+        bgGender.add(genderF);
+        bgGender.add(genderM);
+        bgGender.add(genderO);
+        bgLocked.add(lockedN);
+        bgLocked.add(lockedY);
+        bgRole.add(roleA);
+        bgRole.add(roleC);
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                User u = null;
+                try {
+                    u = checkUserData();
+
+                    Object[] options = {"Save", "Cancel"};
+                    int n = JOptionPane.showOptionDialog(Dashboard.this,
+                            "Sure you want to save the changes?",
+                            "Question", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null, options, options[1]);
+
+                    if (n == 1 || n == -1) {
+                        changeUserInfo();
+                    } else if (n == 0) {
+                        try {
+                            Main.db.updateUser(u);
+                            selectedUser = u;
+                            changeUserInfo();
+                        } catch (CalendarOrganizerException ex) {
+                            JOptionPane.showMessageDialog(Dashboard.this, ex.getMessage(),
+                                    "Update Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(Dashboard.this, ex.getMessage(),
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        Box bTitle = Box.createHorizontalBox();
+        bTitle.add(lTitle);
+        bTitle.add(Box.createHorizontalStrut(20));
 
         Box bEmail = Box.createHorizontalBox();
         bEmail.add(lEmail);
         bEmail.add(Box.createHorizontalStrut(10));
         bEmail.add(tfEmail);
-        
+
         Box bName = Box.createHorizontalBox();
         bName.add(lName);
         bName.add(Box.createHorizontalStrut(10));
         bName.add(tfName);
-        
+
+        Box bNation = Box.createHorizontalBox();
+        bNation.add(lNation);
+        bNation.add(Box.createHorizontalStrut(10));
+        bNation.add(jbNation);
+
+        Box bBirthDate = Box.createHorizontalBox();
+        bBirthDate.add(lBirthDate);
+        bBirthDate.add(Box.createHorizontalStrut(10));
+        bBirthDate.add(tfBirthDate);
+
+        Box bSurname1 = Box.createHorizontalBox();
+        bSurname1.add(lSurname1);
+        bSurname1.add(Box.createHorizontalStrut(10));
+        bSurname1.add(tfSurname1);
+
+        Box bSurname2 = Box.createHorizontalBox();
+        bSurname2.add(lSurname2);
+        bSurname2.add(Box.createHorizontalStrut(10));
+        bSurname2.add(tfSurname2);
+
+        Box bPhone = Box.createHorizontalBox();
+        bPhone.add(lPhone);
+        bPhone.add(Box.createHorizontalStrut(10));
+        bPhone.add(tfPhone);
+
+        Box bRole = Box.createHorizontalBox();
+        bRole.add(lRole);
+        bRole.add(Box.createHorizontalStrut(10));
+        bRole.add(roleA);
+        bRole.add(roleC);
+
         Box bGender = Box.createHorizontalBox();
-        bName.add(lName);
-        bName.add(Box.createHorizontalStrut(10));
-        bName.add(tfName);
+        bGender.add(lGender);
+        bGender.add(Box.createHorizontalStrut(10));
+        bGender.add(genderF);
+        bGender.add(genderM);
+        bGender.add(genderO);
+
+        Box bLocked = Box.createHorizontalBox();
+        bLocked.add(lLocked);
+        bLocked.add(Box.createHorizontalStrut(10));
+        bLocked.add(lockedN);
+        bLocked.add(lockedY);
 
         Box bButtons = Box.createHorizontalBox();
-       // bButtons.add(submitButton);
+        bButtons.add(editButton);
 
         Box b = Box.createVerticalBox();
         b.add(Box.createVerticalStrut(10));
+        b.add(bTitle);
+        b.add(Box.createVerticalStrut(10));
         b.add(bEmail);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bName);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bNation);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bSurname1);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bSurname2);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bPhone);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bBirthDate);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bRole);
+        b.add(bLocked);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bGender);
         b.add(Box.createVerticalStrut(20));
         b.add(bButtons);
         b.add(Box.createVerticalStrut(10));
 
-      //  panel.add(this)
-        
+        panel.add(b);
         panel.setVisible(false);
         return panel;
     }
 
     private void showUserInfo() {
         userInfo.setVisible(true);
+        eastPanel.repaint();
     }
 
     private void changeUserInfo() {
         tfName.setText(selectedUser.getName());
         tfEmail.setText(selectedUser.getEmail());
-        tfGender.setText(selectedUser.getGender().getName());
-        tfLocked.setText(selectedUser.isLocked() ? "Yes" : "No");
-        tfRole.setText(selectedUser.getRole().getName());
-        tfNation.setText(selectedUser.getNation().getName());
+        bgGender.setSelected(
+                (selectedUser.getGender() == Gender.FEMALE ? genderF
+                        : selectedUser.getGender() == Gender.MALE ? genderM : genderO).getModel(), true);
+        bgLocked.setSelected((selectedUser.isLocked() ? lockedY : lockedN).getModel(), true);
+        bgRole.setSelected((selectedUser.getRole() == Role.ADMIN ? roleA : roleC).getModel(), true);
         tfBirthDate.setText(selectedUser.getBirthDate().toString());
         tfSurname1.setText(selectedUser.getSurname1());
         tfSurname2.setText(selectedUser.getSurname2());
-        tfPhone.setText(selectedUser.getPhone() == null ? "None" : selectedUser.getPhone());
+        tfPhone.setText(selectedUser.getPhone());
+
+        int num = jbNation.getItemCount();
+        int pos = 0;
+        for (int i = 0; i < num; i++) {
+            Nation item = (Nation) jbNation.getItemAt(i);
+            if (item.equals(selectedUser.getNation())) {
+                break;
+            }
+            pos++;
+        }
+        jbNation.setSelectedIndex(pos);
+    }
+
+    private User checkUserData() throws RuntimeException {
+        String lockedC = bgLocked.getSelection().getActionCommand();
+        String roleC = bgRole.getSelection().getActionCommand();
+        String genderC = bgGender.getSelection().getActionCommand();
+
+        boolean locked = lockedC.equals("lockedY");
+        Role role = roleC.equals(Role.ADMIN.getName()) ? Role.ADMIN : Role.CUSTOMER;
+        Gender gender = genderC.equals(Gender.FEMALE.getName()) ? Gender.FEMALE
+                : genderC.equals(Gender.MALE.getName()) ? Gender.MALE : Gender.OTHER;
+        Nation nation = (Nation) jbNation.getSelectedItem();
+
+        if (!DateValidatorSimpleDateFormat.isValid(tfBirthDate.getText())) {
+            throw new RuntimeException("Invalid date: must be like 2002-03-02");
+        }
+
+        Date birthDate = Date.valueOf(tfBirthDate.getText());
+
+        User u = new User(selectedUser.getId(), tfName.getText(), selectedUser.getEmail(), tfSurname1.getText(),
+                tfSurname2.getText(), locked, birthDate, gender, role, nation,
+                tfPhone.getText().length() == 0 ? null : tfPhone.getText());
+        return u;
     }
 }

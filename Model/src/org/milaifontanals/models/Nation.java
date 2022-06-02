@@ -52,7 +52,7 @@ public class Nation implements Cloneable {
 
     @Override
     public String toString() {
-        return "Nation{" + "id=" + id + ", code=" + code + ", name=" + name + '}';
+        return name;
     }
     
     @Override

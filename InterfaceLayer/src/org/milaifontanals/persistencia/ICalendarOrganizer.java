@@ -3,6 +3,7 @@ package org.milaifontanals.persistencia;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import org.milaifontanals.models.Calendar;
+import org.milaifontanals.models.Nation;
 import org.milaifontanals.models.User;
 
 /**
@@ -17,7 +18,8 @@ public interface ICalendarOrganizer {
     public User collectUser(ResultSet rs) throws CalendarOrganizerException;
     public Calendar collectCalendar(ResultSet rs) throws CalendarOrganizerException;
     public boolean checkAuth(String email, String password) throws CalendarOrganizerException;
-    
+    public ArrayList<Nation> getNations() throws CalendarOrganizerException;
+    public void updateUser(User user) throws CalendarOrganizerException;
     public void commit() throws CalendarOrganizerException;
     public void rollBack() throws CalendarOrganizerException;
     public void close() throws CalendarOrganizerException;

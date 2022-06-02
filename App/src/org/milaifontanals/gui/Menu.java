@@ -33,9 +33,6 @@ public class Menu {
         JMenu generic = new JMenu("Generic");
         generic.setMnemonic(KeyEvent.VK_G);
 
-
-        HashMap<String,String> urls = getWebUrls();
-        
         JMenuItem helpWeb = new JMenuItem("Help Web");
         helpWeb.setAccelerator(getKeyStroke(KeyEvent.VK_F2, KeyEvent.ALT_DOWN_MASK));
         helpWeb.addActionListener(new OpenBrowser(Main.props.get("web_help_url"), frame));
@@ -81,25 +78,5 @@ public class Menu {
 
     public void setMenuBar(JMenuBar menu) {
         this.menu = menu;
-    }
-    
-    private HashMap<String,String> getWebUrls() throws CalendarOrganizerException {
-        HashMap<String,String> props = null;
-        try{
-            props = new ReadProperties("env.properties", 
-                new ArrayList<>(){{
-                    add("web_url");
-                    add("web_help_url");
-                }})
-                .getPropertiesReaded();
-        }catch(Exception ex){
-            throw new CalendarOrganizerException(ex.getMessage(), ex.getCause());
-        }
-        
-        if (props.get("web_url") == null || props.get("web_help_url") == null) {
-            throw new CalendarOrganizerException("Need properites: web_url, web_help_url on file env.properties");
-        }
-
-        return props;
     }
 }
