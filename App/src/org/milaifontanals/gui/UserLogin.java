@@ -82,17 +82,16 @@ public class UserLogin extends JFrame {
                 String email = emailField.getText();
                 String password = passwordField.getText();
 
-               // try {
-                    //if (Main.db.checkAuth(email, password)) {
+                try {
+                    if (Main.db.checkAuth(email, password)) {
                         GUI.userLoginFrame.close();
                         GUI.dashboardFrame.run();
-                    /*} else {
+                    } else {
                         JOptionPane.showMessageDialog(UserLogin.this, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
-                    }*/
-                /*} catch (CalendarOrganizerException ex) {
+                    }
+                } catch (CalendarOrganizerException ex) {
                     JOptionPane.showMessageDialog(UserLogin.this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    System.exit(1);
-                }*/
+                }
             }
         });
 

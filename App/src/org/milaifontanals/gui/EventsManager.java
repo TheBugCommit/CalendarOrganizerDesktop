@@ -56,6 +56,7 @@ public class EventsManager extends JDialog {
 
     private JTextField tEmail, tName, tOwnerHelper, tCalTitle, tCalStart, tCalEnd;
     private JTextArea tCalDesc;
+    private String ownerOrHelper;
 
     public EventsManager(JFrame frame) {
         super(frame);
@@ -106,13 +107,15 @@ public class EventsManager extends JDialog {
         setVisible(false);
     }
 
-    public void run(Calendar calendar, User user) {
+    public void run(Calendar calendar, User user, String type) {
         if (isVisible()) {
             removeAllEvents();
         }
+        this.ownerOrHelper = type;
         setTitle("Calendar " + calendar.getTitle());
         setUser(user);
         setCalendar(calendar);
+        setHeaderInfo();
         fetchAllEvents();
         setVisible(true);
         repaint();
@@ -215,7 +218,7 @@ public class EventsManager extends JDialog {
     }
 
     private void initHeader() {
-        pHeader = new JPanel(new BorderLayout());
+        pHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel userP = new JPanel();
         userP.setLayout(new BorderLayout());
 
@@ -230,41 +233,130 @@ public class EventsManager extends JDialog {
         JLabel uEmail = new JLabel("Email: ");
         JLabel uName = new JLabel("Name: ");
         JLabel uOwnerHelper = new JLabel("Owner or Helper: ");
+        JLabel cDesc = new JLabel("Description");
+        JLabel cTitle = new JLabel("Title");
+        JLabel cStart = new JLabel("Start Date");
+        JLabel cEnd = new JLabel("End Date");
+        JLabel cInfo = new JLabel("Calendar Information");
+        font = cInfo.getFont();
+        attributes = font.getAttributes();
+        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+        uInfo.setFont(font.deriveFont(attributes));
+
+        tEmail = new JTextField();
+        tEmail.setEditable(false);
+
+        tName = new JTextField();
+        tName.setEditable(false);
+
+        tOwnerHelper = new JTextField();
+        tOwnerHelper.setEditable(false);
+
+        tCalTitle = new JTextField();
+        tCalTitle.setEditable(false);
+
+        tCalStart = new JTextField();
+        tCalStart.setEditable(false);
+
+        tCalEnd = new JTextField();
+        tCalEnd.setEditable(false);
+
+        tCalDesc = new JTextArea();
+        tCalDesc.setEditable(false);
+
+        JScrollPane tADesc = new JScrollPane(tCalDesc,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tADesc.setPreferredSize(new Dimension(200, 100));
 
         Box bInfo = Box.createHorizontalBox();
         bInfo.add(uInfo);
+        bInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
         Box bEmail = Box.createHorizontalBox();
-        bEmail.add(Box.createHorizontalStrut(20));
         bEmail.add(uEmail);
+        bEmail.add(Box.createHorizontalStrut(20));
+        bEmail.add(tEmail);
         bEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bEmail.setAlignmentY(Component.TOP_ALIGNMENT);
 
         Box bName = Box.createHorizontalBox();
-        bName.add(Box.createHorizontalStrut(20));
         bName.add(uName);
+        bName.add(Box.createHorizontalStrut(20));
+        bName.add(tName);
         bName.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bName.setAlignmentY(Component.TOP_ALIGNMENT);
 
         Box bOwnerH = Box.createHorizontalBox();
-        bOwnerH.add(Box.createHorizontalStrut(20));
         bOwnerH.add(uOwnerHelper);
+        bOwnerH.add(Box.createHorizontalStrut(20));
+        bOwnerH.add(tOwnerHelper);
         bOwnerH.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bOwnerH.setAlignmentY(Component.TOP_ALIGNMENT);
 
         Box b = Box.createVerticalBox();
+        b.add(Box.createVerticalStrut(10));
+        b.add(bInfo);
         b.add(Box.createVerticalStrut(10));
         b.add(bEmail);
         b.add(Box.createVerticalStrut(10));
         b.add(bName);
         b.add(Box.createVerticalStrut(10));
         b.add(bOwnerH);
+        
+        Box bcInfo = Box.createHorizontalBox();
+        bcInfo.add(cInfo);
+        bcInfo.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
+        Box bcTitle = Box.createHorizontalBox();
+        bcTitle.add(cTitle);
+        bcTitle.add(Box.createHorizontalStrut(20));
+        bcTitle.add(tCalTitle);
+        bcTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        Box bcDates = Box.createHorizontalBox();
+        bcDates.add(cStart);
+        bcDates.add(Box.createHorizontalStrut(20));
+        bcDates.add(tCalStart);
+        bcDates.add(cEnd);
+        bcDates.add(Box.createHorizontalStrut(20));
+        bcDates.add(tCalEnd);
+        bcDates.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        Box bcDesc = Box.createHorizontalBox();
+        bcDesc.add(cDesc);
+        bcDesc.add(Box.createHorizontalStrut(20));
+        bcDesc.add(tADesc);
+        bcDesc.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        Box b2 = Box.createVerticalBox();
+        b2.add(Box.createVerticalStrut(10));
+        b2.add(bcInfo);
+        b2.add(Box.createVerticalStrut(10));
+        b2.add(bcTitle);
+        b2.add(Box.createVerticalStrut(10));
+        b2.add(bcDates);
+        b2.add(Box.createVerticalStrut(10));
+        b2.add(bcDesc);
+
+
+        userP.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
         userP.add(b, BorderLayout.WEST);
+        calP.add(b2, BorderLayout.EAST);
 
         pHeader.add(userP, BorderLayout.WEST);
         pHeader.add(calP, BorderLayout.EAST);
     }
 
     private void setHeaderInfo() {
-
+        tCalDesc.setText(calendar.getDescription());
+        tCalEnd.setText(calendar.getEndDate().toString());
+        tCalStart.setText(calendar.getStartDate().toString());
+        tCalTitle.setText(calendar.getTitle());
+        tEmail.setText(user.getEmail());
+        tName.setText(user.getName() + " " + user.getSurname1() + " "+ user.getSurname2());
+        tOwnerHelper.setText(ownerOrHelper);
     }
 
     private class ManageButtons implements ActionListener {
@@ -320,7 +412,6 @@ public class EventsManager extends JDialog {
                 case "Edit":
                     try {
                         String email = (String) eventsTable.getModel().getValueAt(n, 1);
-                        System.out.println(email);
                         ArrayList<Category> categories = Main.db.getUserCategoriesByEmail(email);
                         addEditWindow.run("Edit Event", categories, events.get(n), user, calendar, true);
                     } catch (CalendarOrganizerException ex) {

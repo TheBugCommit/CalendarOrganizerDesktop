@@ -1,6 +1,7 @@
 package org.milaifontanals.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -10,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +22,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -37,6 +40,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import org.milaifontanals.Main;
 import org.milaifontanals.models.User;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
@@ -81,14 +85,16 @@ public class Dashboard extends JFrame {
 
     private JPanel userInfo;
 
-    public JTextField tfName, tfEmail, tfBirthDate, tfSurname1, tfSurname2, tfPhone;
-    public ButtonGroup bgRole, bgLocked, bgGender;
-    public JRadioButton genderF, genderM, genderO, lockedY, lockedN, roleA, roleC;
-    public JComboBox jbNation;
+    private JTextField tfName, tfEmail, tfSurname1, tfSurname2;
+    private JFormattedTextField tfBirthDate, tfPhone;
+    private ButtonGroup bgRole, bgLocked, bgGender;
+    private JRadioButton genderF, genderM, genderO, lockedY, lockedN, roleA, roleC;
+    private JComboBox jbNation;
+    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     private ArrayList<Calendar> selUserCalendarsOwner;
     private ArrayList<Calendar> selUserCalendarsHelper;
-    
+
     DateValidatorSimpleDateFormat datevalidator = new DateValidatorSimpleDateFormat("yyyy-MM-dd");
 
     private final static String[] options = new String[]{"Search by Email", "Search by Name-Surname"};
@@ -466,14 +472,14 @@ public class Dashboard extends JFrame {
                             return;
                         }
                         selectedCalendar = selUserCalendarsOwner.get(n);
-                        eventsDialog.run(selectedCalendar, selectedUser);
+                        eventsDialog.run(selectedCalendar, selectedUser, "Owner");
                     } else {
                         int n = helperCalendars.getSelectedRow();
                         if (n == -1) {
                             return;
                         }
                         selectedCalendar = selUserCalendarsHelper.get(n);
-                        eventsDialog.run(selectedCalendar, selectedUser);
+                        eventsDialog.run(selectedCalendar, selectedUser, "Helper");
                     }
                 }
             }
@@ -518,6 +524,15 @@ public class Dashboard extends JFrame {
         }
     }
 
+    private MaskFormatter createFormatter(String s) {
+        MaskFormatter formatter = null;
+        try {
+            formatter = new MaskFormatter(s);
+        } catch (java.text.ParseException ex) {
+        }
+        return formatter;
+    }
+
     private JPanel initUserInfo() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         ArrayList<Nation> nations = null;
@@ -551,10 +566,13 @@ public class Dashboard extends JFrame {
         tfEmail = new JTextField();
         tfEmail.setEditable(false);
         jbNation = new JComboBox();
-        tfBirthDate = new JTextField();
+        tfBirthDate = new JFormattedTextField(createFormatter("####-##-##"));
+        tfBirthDate.setColumns(10);
+        tfBirthDate.setFocusLostBehavior(JFormattedTextField.COMMIT);
         tfSurname1 = new JTextField();
         tfSurname2 = new JTextField();
-        tfPhone = new JTextField();
+        tfPhone = new JFormattedTextField(createFormatter("#########"));
+        tfPhone.setFocusLostBehavior(JFormattedTextField.COMMIT);
 
         for (Nation nation : nations) {
             jbNation.addItem(nation);
@@ -619,47 +637,56 @@ public class Dashboard extends JFrame {
         Box bTitle = Box.createHorizontalBox();
         bTitle.add(lTitle);
         bTitle.add(Box.createHorizontalStrut(20));
+        bTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bEmail = Box.createHorizontalBox();
         bEmail.add(lEmail);
         bEmail.add(Box.createHorizontalStrut(10));
         bEmail.add(tfEmail);
+        bEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bName = Box.createHorizontalBox();
         bName.add(lName);
         bName.add(Box.createHorizontalStrut(10));
         bName.add(tfName);
+        bName.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bNation = Box.createHorizontalBox();
         bNation.add(lNation);
         bNation.add(Box.createHorizontalStrut(10));
         bNation.add(jbNation);
+        bNation.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bBirthDate = Box.createHorizontalBox();
         bBirthDate.add(lBirthDate);
         bBirthDate.add(Box.createHorizontalStrut(10));
         bBirthDate.add(tfBirthDate);
+        bBirthDate.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bSurname1 = Box.createHorizontalBox();
         bSurname1.add(lSurname1);
         bSurname1.add(Box.createHorizontalStrut(10));
         bSurname1.add(tfSurname1);
+        bSurname1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bSurname2 = Box.createHorizontalBox();
         bSurname2.add(lSurname2);
         bSurname2.add(Box.createHorizontalStrut(10));
         bSurname2.add(tfSurname2);
+        bSurname2.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bPhone = Box.createHorizontalBox();
         bPhone.add(lPhone);
         bPhone.add(Box.createHorizontalStrut(10));
         bPhone.add(tfPhone);
+        bPhone.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bRole = Box.createHorizontalBox();
         bRole.add(lRole);
         bRole.add(Box.createHorizontalStrut(10));
         bRole.add(roleA);
         bRole.add(roleC);
+        bRole.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bGender = Box.createHorizontalBox();
         bGender.add(lGender);
@@ -667,15 +694,19 @@ public class Dashboard extends JFrame {
         bGender.add(genderF);
         bGender.add(genderM);
         bGender.add(genderO);
+        bGender.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bLocked = Box.createHorizontalBox();
         bLocked.add(lLocked);
         bLocked.add(Box.createHorizontalStrut(10));
         bLocked.add(lockedN);
         bLocked.add(lockedY);
+        bLocked.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         Box bButtons = Box.createHorizontalBox();
         bButtons.add(editButton);
+        bButtons.setAlignmentX(Component.LEFT_ALIGNMENT);
+
 
         Box b = Box.createVerticalBox();
         b.add(Box.createVerticalStrut(10));
@@ -742,27 +773,26 @@ public class Dashboard extends JFrame {
         String lockedC = bgLocked.getSelection().getActionCommand();
         String roleC = bgRole.getSelection().getActionCommand();
         String genderC = bgGender.getSelection().getActionCommand();
-        System.out.println(roleC);
         boolean locked = lockedC.equals("lockedY");
         Role role = roleC.equals("roleA") ? Role.ADMIN : Role.CUSTOMER;
         Gender gender = genderC.equals(Gender.FEMALE.getName()) ? Gender.FEMALE
                 : genderC.equals(Gender.MALE.getName()) ? Gender.MALE : Gender.OTHER;
-        System.out.println(genderC);
-        System.out.println(role);
-        System.out.println(selectedUser);
         Nation nation = (Nation) jbNation.getSelectedItem();
 
-        
-        
         if (!datevalidator.isValid(tfBirthDate.getText())) {
             throw new RuntimeException("Invalid date: must be like 2002-03-02");
         }
-
+        
+        String phone = null;
+        if(!Pattern.matches("^\\s*$", tfPhone.getText())){
+            phone = tfPhone.getText();
+        }
+        
         Date birthDate = Date.valueOf(tfBirthDate.getText());
-
+        
         User u = new User(selectedUser.getId(), tfName.getText(), selectedUser.getEmail(), tfSurname1.getText(),
                 tfSurname2.getText(), locked, birthDate, gender, role, nation,
-                tfPhone.getText().length() == 0 ? null : tfPhone.getText());
+                phone);
         return u;
     }
 }

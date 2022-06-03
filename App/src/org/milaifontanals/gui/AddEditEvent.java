@@ -163,11 +163,14 @@ public class AddEditEvent extends JDialog {
         location = new JTextField();
         color = new JFormattedTextField(createFormatter("'#HHHHHH"));
         color.setColumns(7);
+        color.setFocusLostBehavior(JFormattedTextField.COMMIT);
         formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         start = new JFormattedTextField(createFormatter("####-##-## ##:##:##"));
         start.setColumns(20);
+        start.setFocusLostBehavior(JFormattedTextField.COMMIT);
         end = new JFormattedTextField(createFormatter("####-##-## ##:##:##"));
         end.setColumns(20);
+        end.setFocusLostBehavior(JFormattedTextField.COMMIT);
 
         Box bTitle = Box.createHorizontalBox();
         bTitle.add(lTitle);
