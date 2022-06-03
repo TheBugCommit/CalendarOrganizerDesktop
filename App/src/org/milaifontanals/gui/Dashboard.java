@@ -118,7 +118,7 @@ public class Dashboard extends JFrame {
         emailDialog = new SearchEmailDialog();
         nameSurDialog = new SearchNameSurDialog();
 
-        eastPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        eastPanel = new JPanel();
         eastPanel.setLayout(new BoxLayout(eastPanel, BoxLayout.PAGE_AXIS));
         pTables = new JPanel(new GridLayout(0, 2));
         pCenterDashboard = new JPanel();
@@ -465,7 +465,6 @@ public class Dashboard extends JFrame {
                         }
                         selectedCalendar = selUserCalendarsOwner.get(n);
                         eventsDialog.run(selectedCalendar, selectedUser);
-
                     } else {
                         int n = helperCalendars.getSelectedRow();
                         if (n == -1) {
@@ -474,7 +473,6 @@ public class Dashboard extends JFrame {
                         selectedCalendar = selUserCalendarsHelper.get(n);
                         eventsDialog.run(selectedCalendar, selectedUser);
                     }
-                    //TODO SELECT CALENDAR
                 }
             }
         });

@@ -62,12 +62,6 @@ public class BDRLayer implements ICalendarOrganizer {
     }
 
     @Override
-    public void insertUser(User user) throws CalendarOrganizerException {
-
-        throw new CalendarOrganizerException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public boolean checkAuth(String email, String password) throws CalendarOrganizerException {
         try {
             PreparedStatement ps = con.prepareStatement("select email, password from users where role_id = ? and email like ? and password like ?");
@@ -310,7 +304,7 @@ public class BDRLayer implements ICalendarOrganizer {
     public Event collectEvent(ResultSet rs) throws CalendarOrganizerException {
         User user = collectUser(rs);
         try {
-            long id = rs.getLong("id");
+            long id = rs.getLong("event_id");
             Category category = new Category(rs.getLong("cat_id"), rs.getString("category_name"));
             String title = rs.getString("title");
             String desc = rs.getString("description");
@@ -328,7 +322,7 @@ public class BDRLayer implements ICalendarOrganizer {
     @Override
     public void deleteEvent(long id) throws CalendarOrganizerException {
         try {
-            String sql = "delete from events where id=? and published=0";
+            String sql = "delete from events where id=?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setLong(1, id);
             ps.executeUpdate();
@@ -342,19 +336,111 @@ public class BDRLayer implements ICalendarOrganizer {
     @Override
     public boolean eventIsPublished(long id) throws CalendarOrganizerException {
         try {
-            String sql = "select published from events where id=?";
+            String sql = "select * from events where id=?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
-
-            boolean pub = false;
-            if (rs.next()) {
-                pub = rs.getBoolean("published");
+            if (!rs.next()) {
+                throw new RuntimeException("");
             }
+            boolean pub = rs.getBoolean("published");
             return pub;
-//return (rs.getBoolean("published"));
-        } catch (SQLException ex) {
+        } catch (SQLException | RuntimeException ex) {
             throw new CalendarOrganizerException("Sorry can't check if event is published", ex);
         }
+    }
+
+    @Override
+    public ArrayList<Category> getUserCategories(long userId) throws CalendarOrganizerException {
+        ArrayList<Category> categories = new ArrayList<>();
+
+        try {
+            String sql = "select * from categories where user_id=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String name = rs.getString("name");
+                categories.add(new Category(id, name));
+            }
+
+        } catch (SQLException ex) {
+            throw new CalendarOrganizerException("Sorry can't get user categories", ex);
+        }
+
+        return categories;
+    }
+
+    @Override
+    public void createEvent(Event ev, long calendarId) throws CalendarOrganizerException {
+        try {
+            String sql = "insert into events (calendar_id, category_id, user_id, title, description, location, published, color, start, end)"
+                    + " values(?,?,?,?,?,?,?,?,?,?)";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setLong(1, calendarId);
+            ps.setLong(2, ev.getCategory().getId());
+            ps.setLong(3, ev.getUser().getId());
+            ps.setString(4, ev.getTitle());
+            ps.setString(5, ev.getDescription());
+            ps.setString(6, ev.getLocation());
+            ps.setBoolean(7, ev.isPublished());
+            ps.setString(8, ev.getColor());
+            ps.setTimestamp(9, ev.getStart());
+            ps.setTimestamp(10, ev.getEnd());
+            ps.executeUpdate();
+            commit();
+        } catch (SQLException ex) {
+            rollBack();
+            throw new CalendarOrganizerException("Sorry can't update event" + ex.getMessage());
+        }
+    }
+
+    @Override
+    public void updateEvent(Event ev) throws CalendarOrganizerException {
+        try {
+            String sql = "update events set title=?,description=?,location=?,color=?,start=?,end=?,category_id=? "
+                    + "where id=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, ev.getTitle());
+            ps.setString(2, ev.getDescription());
+            ps.setString(3, ev.getLocation());
+            ps.setString(4, ev.getColor());
+            ps.setTimestamp(5, ev.getStart());
+            ps.setTimestamp(6, ev.getEnd());
+            ps.setLong(7, ev.getCategory().getId());
+            ps.setLong(8, ev.getId());
+            ps.executeUpdate();
+            commit();
+        } catch (SQLException ex) {
+            rollBack();
+            throw new CalendarOrganizerException("Sorry can't update event" + ex.getMessage());
+        }
+    }
+
+    @Override
+    public ArrayList<Category> getUserCategoriesByEmail(String email) throws CalendarOrganizerException {
+        ArrayList<Category> categories = new ArrayList<>();
+
+        try {
+            String sql = "select c.* from categories c inner join users u "
+                    + "on u.id = c.user_id where u.email like ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String name = rs.getString("name");
+                categories.add(new Category(id, name));
+            }
+
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+            throw new CalendarOrganizerException("Sorry can't get user categories", ex);
+        }
+
+        return categories;
     }
 }

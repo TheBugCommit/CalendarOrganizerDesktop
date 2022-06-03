@@ -3,6 +3,7 @@ package org.milaifontanals.persistencia;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import org.milaifontanals.models.Calendar;
+import org.milaifontanals.models.Category;
 import org.milaifontanals.models.Event;
 import org.milaifontanals.models.Nation;
 import org.milaifontanals.models.User;
@@ -12,7 +13,6 @@ import org.milaifontanals.models.User;
  * @author Gerard Casas
  */
 public interface ICalendarOrganizer {
-    public void insertUser(User user) throws CalendarOrganizerException;
     public User searchUserByEmail(String email) throws CalendarOrganizerException;
     public ArrayList<User> searchUserByNameSurname(String nameSurname) throws CalendarOrganizerException;
     public ArrayList<Calendar> getUserOwnerCalendars(long userId) throws CalendarOrganizerException;
@@ -29,4 +29,8 @@ public interface ICalendarOrganizer {
     public void close() throws CalendarOrganizerException;
     public void deleteEvent(long id) throws CalendarOrganizerException;
     public boolean eventIsPublished(long id) throws CalendarOrganizerException;
+    public ArrayList<Category> getUserCategories(long userId) throws CalendarOrganizerException; 
+    public ArrayList<Category> getUserCategoriesByEmail(String email) throws CalendarOrganizerException; 
+    public void createEvent(Event ev, long calendarId) throws CalendarOrganizerException;
+    public void updateEvent(Event ev) throws CalendarOrganizerException;
 }

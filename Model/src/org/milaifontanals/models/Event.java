@@ -43,17 +43,6 @@ public class Event implements Cloneable {
         this.id = id;
     }
 
-    /*public Calendar getCalendar() {
-        return calendar;
-    }
-
-    public void setCalendar(Calendar calendar) {
-        if (calendar == null) {
-            throw new RuntimeException("Calendar can't be null");
-        }
-        this.calendar = calendar;
-    }*/
-
     public Category getCategory() {
         return category;
     }

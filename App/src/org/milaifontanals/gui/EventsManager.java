@@ -8,10 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,6 +23,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import org.milaifontanals.Main;
 import org.milaifontanals.models.Calendar;
+import org.milaifontanals.models.Category;
 import org.milaifontanals.models.Event;
 import org.milaifontanals.models.User;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
@@ -40,15 +38,16 @@ public class EventsManager extends JDialog {
     public DefaultTableModel dtmEvents;
     public JPanel eventsPanel;
     private ArrayList<Event> events;
-    private JFrame frame;
     private Calendar calendar;
     private User user;
     private JButton bDeleteEvent, bEditEvent, bAddEvent;
     private ManageButtons buttonsManager;
+    private AddEditEvent addEditWindow;
 
     public EventsManager(JFrame frame) {
         super(frame);
-        this.frame = frame;
+
+        addEditWindow = new AddEditEvent(this);
 
         eventsPanel = new JPanel(new BorderLayout());
         eventsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -92,11 +91,15 @@ public class EventsManager extends JDialog {
     }
 
     public void run(Calendar calendar, User user) {
+        if (isVisible()) {
+            removeAllEvents();
+        }
         setTitle("Calendar " + calendar.getTitle());
         setUser(user);
         setCalendar(calendar);
         fetchAllEvents();
         setVisible(true);
+        repaint();
     }
 
     public void close() {
@@ -113,14 +116,7 @@ public class EventsManager extends JDialog {
 
             @Override
             public Class<?> getColumnClass(int column) {
-                Class clazz = String.class;
-                switch (column) {
-                    case 7:
-                    case 8:
-                        clazz = Timestamp.class;
-                        break;
-                }
-                return clazz;
+                return String.class;
             }
 
         };
@@ -178,7 +174,7 @@ public class EventsManager extends JDialog {
         for (Event event : events) {
             dtmEvents.addRow(new Object[]{event.isPublished() ? "Yes" : "No", event.getUser().getEmail(),
                 event.getTitle(), event.getDescription(), event.getColor(),
-                event.getCategory().getName(), event.getStart(), event.getEnd()});
+                event.getCategory().getName(), event.getStart().toString(), event.getEnd().toString()});
         }
     }
 
@@ -218,52 +214,75 @@ public class EventsManager extends JDialog {
             String command = e.getActionCommand();
 
             int n = eventsTable.getSelectedRow();
+
+            if (n == -1 && command != "Add") {
+                JOptionPane.showMessageDialog(EventsManager.this,
+                        "Upps! You don't select any table row",
+                        "WARNING: Deleting", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (command.equals("Delete") || command.equals("Edit")) {
+                try {
+                    if (Main.db.eventIsPublished(events.get(n).getId())) {
+                        JOptionPane.showMessageDialog(EventsManager.this,
+                                "This event it's published, you can't edit/delete it",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                } catch (CalendarOrganizerException ex) {
+                    JOptionPane.showMessageDialog(EventsManager.this, ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
             switch (command) {
                 case "Delete":
-                    if (n == -1) {
-                        JOptionPane.showMessageDialog(EventsManager.this,
-                                "Upps! You don't select any table row",
-                                "WARNING: Deleting", JOptionPane.WARNING_MESSAGE);
-                    } else {
+                    Object[] options = {"Delete", "Cancel"};
+                    int op = JOptionPane.showOptionDialog(EventsManager.this,
+                            "Sure you want to delete event?",
+                            "Question", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null, options, options[1]);
+
+                    if (op == 0) {
                         try {
-                            //System.out.println(Main.db.eventIsPublished(events.get(n).getId()));
-                            if (Main.db.eventIsPublished(events.get(n).getId())) {
-                                JOptionPane.showMessageDialog(EventsManager.this,
-                                        "This event it's published, you can't delete it",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-                                break;
-                            }
+                            Main.db.deleteEvent(events.get(n).getId());
+                            events.remove(n);
+                            dtmEvents.removeRow(n);
                         } catch (CalendarOrganizerException ex) {
                             JOptionPane.showMessageDialog(EventsManager.this, ex.getMessage(),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-                            break;
-                        }
-                        Object[] options = {"Delete", "Cancel"};
-                        int op = JOptionPane.showOptionDialog(EventsManager.this,
-                                "Sure you want to delete event?",
-                                "Question", JOptionPane.YES_NO_OPTION,
-                                JOptionPane.QUESTION_MESSAGE,
-                                null, options, options[1]);
-
-                        if (op == 0) {
-                            try {
-                                Main.db.deleteEvent(events.get(n).getId());
-                                events.remove(n);
-                                dtmEvents.removeRow(n);
-                            } catch (CalendarOrganizerException ex) {
-                                JOptionPane.showMessageDialog(EventsManager.this, ex.getMessage(),
-                                        "Update Error", JOptionPane.ERROR_MESSAGE);
-                            }
+                                    "Delete Error", JOptionPane.ERROR_MESSAGE);
                         }
                     }
                     break;
                 case "Edit":
-
+                    try {
+                        String email = (String) eventsTable.getModel().getValueAt(n, 1);
+                        System.out.println(email);
+                        ArrayList<Category> categories = Main.db.getUserCategoriesByEmail(email);
+                        addEditWindow.run("Edit Event", categories, events.get(n), user, calendar, true);
+                    } catch (CalendarOrganizerException ex) {
+                        JOptionPane.showMessageDialog(EventsManager.this, ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                     break;
                 case "Add":
-
+                    try {
+                        ArrayList<Category> categories = Main.db.getUserCategories(user.getId());
+                        addEditWindow.run("Add Event", categories, null, user, calendar, false);
+                    } catch (CalendarOrganizerException ex) {
+                        JOptionPane.showMessageDialog(EventsManager.this, ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                     break;
             }
         }
+    }
+
+    public void refreshEventsTable() {
+        removeAllEvents();
+        fetchAllEvents();
     }
 }
