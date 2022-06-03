@@ -1,22 +1,31 @@
 package org.milaifontanals.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.TextAttribute;
 import java.util.ArrayList;
+import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -43,6 +52,10 @@ public class EventsManager extends JDialog {
     private JButton bDeleteEvent, bEditEvent, bAddEvent;
     private ManageButtons buttonsManager;
     private AddEditEvent addEditWindow;
+    private JPanel pHeader;
+
+    private JTextField tEmail, tName, tOwnerHelper, tCalTitle, tCalStart, tCalEnd;
+    private JTextArea tCalDesc;
 
     public EventsManager(JFrame frame) {
         super(frame);
@@ -84,6 +97,9 @@ public class EventsManager extends JDialog {
         panelButtons.add(bAddEvent);
         panelButtons.add(bEditEvent);
 
+        initHeader();
+
+        eventsPanel.add(pHeader, BorderLayout.NORTH);
         eventsPanel.add(panelButtons, BorderLayout.SOUTH);
 
         setContentPane(eventsPanel);
@@ -122,15 +138,6 @@ public class EventsManager extends JDialog {
         };
 
         table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-
-                if (e.getValueIsAdjusting()) {
-                    System.out.println("fila seleccionada");
-                }
-            }
-        });
 
         model.addColumn("PUBLISHED");
         model.addColumn("USER-EMAIL");
@@ -205,6 +212,59 @@ public class EventsManager extends JDialog {
         button.setActionCommand("Edit");
         button.addActionListener(buttonManager);
         return button;
+    }
+
+    private void initHeader() {
+        pHeader = new JPanel(new BorderLayout());
+        JPanel userP = new JPanel();
+        userP.setLayout(new BorderLayout());
+
+        JPanel calP = new JPanel();
+        calP.setLayout(new BorderLayout());
+
+        JLabel uInfo = new JLabel("User Information");
+        Font font = uInfo.getFont();
+        Map attributes = font.getAttributes();
+        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+        uInfo.setFont(font.deriveFont(attributes));
+        JLabel uEmail = new JLabel("Email: ");
+        JLabel uName = new JLabel("Name: ");
+        JLabel uOwnerHelper = new JLabel("Owner or Helper: ");
+
+        Box bInfo = Box.createHorizontalBox();
+        bInfo.add(uInfo);
+
+        Box bEmail = Box.createHorizontalBox();
+        bEmail.add(Box.createHorizontalStrut(20));
+        bEmail.add(uEmail);
+        bEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        Box bName = Box.createHorizontalBox();
+        bName.add(Box.createHorizontalStrut(20));
+        bName.add(uName);
+        bName.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        Box bOwnerH = Box.createHorizontalBox();
+        bOwnerH.add(Box.createHorizontalStrut(20));
+        bOwnerH.add(uOwnerHelper);
+        bOwnerH.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        Box b = Box.createVerticalBox();
+        b.add(Box.createVerticalStrut(10));
+        b.add(bEmail);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bName);
+        b.add(Box.createVerticalStrut(10));
+        b.add(bOwnerH);
+
+        userP.add(b, BorderLayout.WEST);
+
+        pHeader.add(userP, BorderLayout.WEST);
+        pHeader.add(calP, BorderLayout.EAST);
+    }
+
+    private void setHeaderInfo() {
+
     }
 
     private class ManageButtons implements ActionListener {

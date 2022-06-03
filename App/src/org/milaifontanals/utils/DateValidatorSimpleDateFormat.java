@@ -7,10 +7,17 @@ import java.text.SimpleDateFormat;
  *
  * @author Gerard Casas
  */
-public class DateValidatorSimpleDateFormat{
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+public class DateValidatorSimpleDateFormat {
+
+    private String format;
     
-    public static boolean isValid(final String dateStr) {
+    public DateValidatorSimpleDateFormat(String format) {
+        this.format = format;
+    }
+
+    public boolean isValid(final String dateStr) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+
         sdf.setLenient(false);
         try {
             sdf.parse(dateStr);
@@ -20,5 +27,3 @@ public class DateValidatorSimpleDateFormat{
         return true;
     }
 }
-
-

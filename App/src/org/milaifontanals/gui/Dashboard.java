@@ -88,6 +88,8 @@ public class Dashboard extends JFrame {
 
     private ArrayList<Calendar> selUserCalendarsOwner;
     private ArrayList<Calendar> selUserCalendarsHelper;
+    
+    DateValidatorSimpleDateFormat datevalidator = new DateValidatorSimpleDateFormat("yyyy-MM-dd");
 
     private final static String[] options = new String[]{"Search by Email", "Search by Name-Surname"};
 
@@ -750,7 +752,9 @@ public class Dashboard extends JFrame {
         System.out.println(selectedUser);
         Nation nation = (Nation) jbNation.getSelectedItem();
 
-        if (!DateValidatorSimpleDateFormat.isValid(tfBirthDate.getText())) {
+        
+        
+        if (!datevalidator.isValid(tfBirthDate.getText())) {
             throw new RuntimeException("Invalid date: must be like 2002-03-02");
         }
 

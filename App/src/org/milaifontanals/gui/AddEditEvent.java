@@ -32,6 +32,7 @@ import org.milaifontanals.models.Category;
 import org.milaifontanals.models.User;
 import org.milaifontanals.models.Event;
 import org.milaifontanals.persistencia.CalendarOrganizerException;
+import org.milaifontanals.utils.DateValidatorSimpleDateFormat;
 
 /**
  *
@@ -55,6 +56,7 @@ public class AddEditEvent extends JDialog {
     private SimpleDateFormat formatter;
     private EventsManager parentDialog;
     private Calendar calendar;
+    private DateValidatorSimpleDateFormat datevalidator = new DateValidatorSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public AddEditEvent(EventsManager parentDialog) {
         super(parentDialog, true);
@@ -110,14 +112,22 @@ public class AddEditEvent extends JDialog {
                 Event ev = null;
                 try {
                     ev = getNewEvent();
-                    Date calStart = calendar.getStartDate();
-                    Date calEnd = calendar.getEndDate();
-                    if((ev.getStart().before(calStart) || ev.getStart().after(calEnd)) ||
-                       (ev.getEnd().after(calEnd) || ev.getEnd().before(calStart))){
-                        throw new RuntimeException("The start date or the end date exceed the dates of the calendar to which they belong");
+
+                    if (!datevalidator.isValid(start.getText())) {
+                        throw new RuntimeException("Invalid start date");
                     }
                     
-                    
+                    if (!datevalidator.isValid(end.getText())) {
+                        throw new RuntimeException("Invalid end date");
+                    }
+
+                    Date calStart = calendar.getStartDate();
+                    Date calEnd = calendar.getEndDate();
+                    if ((ev.getStart().before(calStart) || ev.getStart().after(calEnd))
+                            || (ev.getEnd().after(calEnd) || ev.getEnd().before(calStart))) {
+                        throw new RuntimeException("The start date or the end date exceed the dates of the calendar to which they belong");
+                    }
+
                 } catch (RuntimeException ex) {
                     JOptionPane.showMessageDialog(AddEditEvent.this, ex.getMessage(),
                             "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -173,7 +183,7 @@ public class AddEditEvent extends JDialog {
         bCat.add(lCat);
         bCat.add(Box.createHorizontalStrut(10));
         bCat.add(category);
-        
+
         Box bColor = Box.createHorizontalBox();
         bColor.add(lColor);
         bColor.add(Box.createHorizontalStrut(10));
@@ -260,14 +270,14 @@ public class AddEditEvent extends JDialog {
         }
 
         Event e = null;
-        if(editing){
+        if (editing) {
             e = new Event(event.getId(), ((Category) category.getSelectedItem()),
-                user, title.getText(), description.getText(), location.getText(),
-                event.isPublished(), color.getText(), start, end);
-        }else{
+                    user, title.getText(), description.getText(), location.getText(),
+                    event.isPublished(), color.getText(), start, end);
+        } else {
             e = new Event(0, ((Category) category.getSelectedItem()),
-                user, title.getText(), description.getText(), location.getText(),
-                false, color.getText(), start, end);
+                    user, title.getText(), description.getText(), location.getText(),
+                    false, color.getText(), start, end);
         }
 
         return e;
